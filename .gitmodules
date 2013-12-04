@@ -1,0 +1,3 @@
+[submodule "gdc"]
+	path = gdc
+	url = ssh://git@github.com/twixraider81/GDC.git
