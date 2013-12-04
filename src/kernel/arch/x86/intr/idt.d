@@ -45,7 +45,7 @@ template generateExceptionGates( uint n, int i = 0 )
 	static if( i > n ) 
 		const char[] generateExceptionGates = ``;
 	else
-		const char[] generateExceptionGates = `setGate( table[` ~ i.stringof ~ `], &isrException` ~ i.stringof ~ `, Flags.PRESET | Flags.INTERRUPT ); ` ~ generateExceptionGates!( n, i + 1 );
+		const char[] generateExceptionGates = `setGate( table[` ~ i.stringof ~ `], &isrException` ~ i.stringof ~ `, Flags.PRESENT | Flags.INTERRUPT ); ` ~ generateExceptionGates!( n, i + 1 );
 }
 
 template generateIrqGates( uint n, int i = 0 ) 
@@ -53,7 +53,7 @@ template generateIrqGates( uint n, int i = 0 )
 	static if( i > n ) 
 		const char[] generateIrqGates = ``;
 	else
-		const char[] generateIrqGates = `setGate( table[32+` ~ i.stringof ~ `], &isrIrq` ~ i.stringof ~ `, Flags.PRESET | Flags.INTERRUPT ); ` ~ generateIrqGates!( n, i + 1 );
+		const char[] generateIrqGates = `setGate( table[32+` ~ i.stringof ~ `], &isrIrq` ~ i.stringof ~ `, Flags.PRESENT | Flags.INTERRUPT ); ` ~ generateIrqGates!( n, i + 1 );
 }
 
 
@@ -116,7 +116,7 @@ class Idt
 	}
 
 	/**
-	 IDT tablelle, loaded via lidt
+	 IDT table, loaded via lidt
 	 */
 	private __gshared Entry[256] table;
 
@@ -135,7 +135,7 @@ class Idt
 	 */
 	public enum Flags
 	{
-		PRESET		= 0x80,
+		PRESENT		= 0x80,
 		USER		= 0x60,
 		INTERRUPT	= 0x0E,
 		TRAP		= 0x0F
@@ -152,13 +152,13 @@ class Idt
 		mixin( generateIrqGates!(23) );
 
 		// ipi
-		setGate( table[0xFB], &isrIpiPanic, Flags.PRESET | Flags.INTERRUPT );
-		setGate( table[0xFC], &isrIpiTlb, Flags.PRESET | Flags.INTERRUPT );
+		setGate( table[0xFB], &isrIpiPanic, Flags.PRESENT | Flags.INTERRUPT );
+		setGate( table[0xFC], &isrIpiTlb, Flags.PRESENT | Flags.INTERRUPT );
 
 		// lapic lvt
-		setGate( table[0xFD], &isrLapicTimer, Flags.PRESET | Flags.INTERRUPT );
-		setGate( table[0xFE], &isrLapicError, Flags.PRESET | Flags.INTERRUPT );
-		setGate( table[0xFF], &isrLapicSpurious, Flags.PRESET | Flags.INTERRUPT );
+		setGate( table[0xFD], &isrLapicTimer, Flags.PRESENT | Flags.INTERRUPT );
+		setGate( table[0xFE], &isrLapicError, Flags.PRESENT | Flags.INTERRUPT );
+		setGate( table[0xFF], &isrLapicSpurious, Flags.PRESENT | Flags.INTERRUPT );
 
 		struct Base
 		{
