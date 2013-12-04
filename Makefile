@@ -9,7 +9,6 @@ CROSSDIR	:= $(DIR)cross-$(TARGET)/
 SUPPORTDIR	:= $(DIR)support/
 TMPDIR		:= /tmp/
 SRCFILES	:= $(shell find $(SRCDIR) -name '*.[cdS]')
-OBJFILES	:= $(addsuffix .o,$(basename $(SRCFILES)))
 BACKUP		:= ~/backup/exokid-$(shell date +%Y-%m-%d-%H-%M).tar.bz2
 
 VMA			:= 0xffffffff80000000
@@ -22,9 +21,11 @@ ASM			:= $(QUIET)$(shell which nasm)
 ASMFLAGS	:= -felf64 -g -Fdwarf -Werror -Wgnu-elf-extensions -Wfloat-denorm -s -Ox -DSTACK_SIZE=$(SSIZE) -DPAGE_SIZE=$(PSIZE) -DKERNEL_VMA=$(VMA) -o
 
 #DC		:= $(QUIET)$(CROSSDIR)bin/ldc2
+#RTDIR	:= $(DIR)ldc/src/
 #DCFLAGS	:= -nodefaultlib -m64 -code-model=kernel -d-debug -g -c -nodefaultlib -disable-simplify-drtcalls -disable-simplify-libcalls -disable-red-zone -I$(SRCDIR) -I$(SRCDIR)druntime/ -I$(SRCDIR)druntime/rt/ -fthread-model=local-exec -ignore -c -output-o -w -x86-early-ifcvt -float-abi=hard -fatal-assembler-warnings -O2 -enable-asserts -of=
+RTDIR	:= $(DIR)gdc/libphobos/libdruntime/
 DC		:= $(QUIET)$(CROSSDIR)bin/$(TARGET)-gdc
-DCFLAGS	:= -I$(SRCDIR) -I$(SRCDIR)druntime/ -I$(SRCDIR)druntime/rt/ -m64 -nostdinc -nostdlib -fno-bounds-check -fno-emit-moduleinfo -fversion=NoSystem -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse3 -mno-3dnow -g -fdebug -c -O2 -o 
+DCFLAGS	:= -I$(SRCDIR) -I$(RTDIR) -m64 -fversion=BareMetal -nostdinc -nostdlib -fno-bounds-check -fno-emit-moduleinfo -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse3 -mno-3dnow -g -fdebug -c -O2 -o 
 
 LD		:= $(QUIET)$(CROSSDIR)bin/$(TARGET)-ld
 LDFLAGS	:= -nostdlib --reduce-memory-overheads --error-unresolved-symbols -z defs -z max-page-size=$(PSIZE)
@@ -42,6 +43,8 @@ GDB		:= $(QUIET)$(shell which gdb)
 QEMU	:= $(QUIET)$(shell which qemu-system-x86_64)
 QEMUFLAGS	:= -no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio
 
+SRCFILES	+= $(shell find $(RTDIR) -name '*.[d]')
+OBJFILES	:= $(addsuffix .o,$(basename $(SRCFILES)))
 
 help:
 	$(QUIET)echo "\nPlease use one of the following targets:\n\n- kernel: build kernel\n- clean: remove temporaries\n- kernel.img: builds an image file, bootable with bochs/qemu\n- kernel.sym: symbol tale needed for bochs\n\n- bochs: build everything and fire up bochs (must be present in cross tools dir)\n- qemu: build everything and fire up qemu\n- gdb: fire up gdb and load kernel.bin\n- kdbg: fire up kdbg and load kernel.bin\n- disasm: disassemble via objdump\n\n- backup: create backup archive at $(BACKUP)\n- todo: show FIXME's"
