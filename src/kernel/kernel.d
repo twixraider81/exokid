@@ -1,31 +1,33 @@
 /**
- Exokid - An EXOKernel In D
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.kernel;
 
 import kernel.common;
 
 /**
- Der eigentliche Kernel
+ Exokid - an EXOKernel In D
  */
 class Kernel
 {
 	/**
 	 Initialisiert den Kernel via Multiboot2.
-	 multibootMagic & multibootInfo Pointer müssen vom Bootloader übergeben werden
 	 */
 	public static void Initialize( ulong multibootMagic, ulong* multibootInfo )
 	{
-		if( !Multiboot2.Initialize( multibootMagic, PhysMem.ptrToVirtual( multibootInfo ) ) ) {
+		Config.Initialize( multibootMagic, multibootInfo );
 
-			Trace.Initialize();
-			Trace.printf( "Wrong multiboot magic: %x !", multibootMagic );
-
-			Cpu.Halt();
-			return; // eher symbolischer natur...
-		}
-
-		Config.Initialize();
 		Trace.Initialize( Trace.Device.VGA | Trace.Device.E9 | Trace.Device.UART );
 
 		Trace.printf( "Exokid kernel booting via %s...\n\n", Multiboot2.bootLoader );
@@ -38,7 +40,7 @@ class Kernel
 	}
 
 	/**
-	 Kernel Hauptschleife
+	 Kernel main loop
 	 */
 	public static void Run()
 	{
@@ -48,7 +50,7 @@ class Kernel
 	}
 
 	/**
-	 Leitet den Shutdown des Kernel ein
+	 Initialize kernel shutdown
 	 */
 	public static void Shutdown()
 	{

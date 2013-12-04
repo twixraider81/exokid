@@ -28,12 +28,11 @@ public
 	version(X86_64)
 	{
 		public import kernel.arch.x86.architecture;
-	}
-
-	version(X86_32)
+	} else version(X86)
 	{
 		public import kernel.arch.x86.architecture;
 	}
 
+	public import core.stdc.stdint;
 	public import core.vararg;
 }
