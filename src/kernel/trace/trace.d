@@ -126,7 +126,7 @@ class Trace
 						printChar( 'x' );
 					}
 
-					print( cast(string)utoa( buf, token, va_arg!( ulong )( _argptr ) ) );
+					print( cast(string)utoa( buf, token, va_arg!( uintptr_t )( _argptr ) ) );
 				} else if( token == 's' ) {
 					print( va_arg!( string )( _argptr ) );
 				}
@@ -137,11 +137,11 @@ class Trace
 	/**
 	 Convert number to string using a base
 	 */
-	static public char[] utoa(char[] buf, char base, ulong d)
+	static public char[] utoa(char[] buf, char base, uintptr_t d)
 	{
-		ulong p = buf.length - 1;
-		ulong startIdx = 0;
-		ulong ud = d;
+		uintptr_t p = buf.length - 1;
+		uintptr_t startIdx = 0;
+		uintptr_t ud = d;
 		bool negative = false;
 		int divisor = 10;
 

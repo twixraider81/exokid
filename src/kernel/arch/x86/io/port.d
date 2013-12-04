@@ -82,7 +82,7 @@ class Port : Common
 	/**
 	 Write
 	 */
-	public static void Poke(T)( ushort port, long data, bool iowait = false )
+	public static void Poke(T)( ushort port, intptr_t data, bool iowait = false )
 	{
 		version(GNU) {
 			static if( is(T == ubyte) || is(T == byte) ) {

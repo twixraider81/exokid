@@ -99,7 +99,7 @@ class Serial : Common
 	 Write to the bus
 	 //FIXME: it blocks
 	 */
-	public static void Poke(T)( ubyte addr, long data )
+	public static void Poke(T)( ubyte addr, intptr_t data )
 	{
 		ushort port = BDA.Peek!(ushort)( addr );
 		if( !port ) return;

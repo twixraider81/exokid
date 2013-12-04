@@ -136,7 +136,7 @@ class Multiboot2
 	/**
 	 Initialize multiboot2 reader
 	 */
-	public static bool Initialize( ulong multibootMagic, void* infoAddr )
+	public static bool Initialize( uintptr_t multibootMagic, void* infoAddr )
 	{
 		if( multibootMagic != bootldrMagic ) {
 			return false;
@@ -151,8 +151,8 @@ class Multiboot2
 	 */
 	private static T getTag( T )( uint tType )
 	{
-		ulong tagAddr = cast(ulong)info + Info.totalSize.sizeof + Info.reserved.sizeof;
-		ulong tagLimit = tagAddr + info.totalSize;
+		uintptr_t tagAddr = cast(uintptr_t)info + Info.totalSize.sizeof + Info.reserved.sizeof;
+		uintptr_t tagLimit = tagAddr + info.totalSize;
 		while( tagAddr < tagLimit ) {
 			Tag* tag = cast(Tag*)tagAddr;
 
@@ -161,7 +161,7 @@ class Multiboot2
 			if( tag.tagType == tType ) return (cast(T) tag);
 
 			// align
-    		ulong size =  ( ( ( tag.tagSize ) + 7 ) & 0xFFFFFFFFFFFFFFF8 );
+    		uintptr_t size =  ( ( ( tag.tagSize ) + 7 ) & 0xFFFFFFFFFFFFFFF8 );
     		tagAddr += size;
     	}
 
@@ -176,9 +176,9 @@ class Multiboot2
 		public static char[] commandLine()
 		{
 			TagString* line = getTag!( TagString* )( tagType.CMDLINE );
-			ulong length = line.tagSize - line.tagType.sizeof - line.tagSize.sizeof;
+			uintptr_t length = line.tagSize - line.tagType.sizeof - line.tagSize.sizeof;
 	
-			for( ulong i = 0; ( i < length || i < buffer.length); i++ ) {
+			for( uintptr_t i = 0; ( i < length || i < buffer.length); i++ ) {
 				buffer[i] = line.str[i];
 			}
 	
@@ -194,9 +194,9 @@ class Multiboot2
 		public static char[] bootLoader()
 		{
 			TagString* line = getTag!( TagString* )( tagType.BOOTLDR );
-			ulong length = line.tagSize - line.tagType.sizeof - line.tagSize.sizeof;
+			uintptr_t length = line.tagSize - line.tagType.sizeof - line.tagSize.sizeof;
 
-			for( ulong i = 0; ( i < length || i < buffer.length); i++ ) {
+			for( uintptr_t i = 0; ( i < length || i < buffer.length); i++ ) {
 				buffer[i] = line.str[i];
 			}
 

@@ -63,8 +63,10 @@ extern(C) {
 	 */
 	void isrHandler( CpuState* state )
 	{
-		if( state.interrupt <= 31 ) { // x64
-			Trace.printf( "\n\nException %d: %s\nCode: %d, flags: %d\n\ncs: %x\tds: %x\tss: %x\nrsp:%x\nrip: %x\nrsi: %x\nrdi: %x\nrbp: %x\n\nrax:%x\nrbx:%x\nrcx:%x\nrdx:%x\nr8: %x\nr9: %x\nr10: %x\nr11: %x\nr12: %x\nr12: %x\nr13: %x\nr14: %x\nr15: %x\n", state.interrupt, Idt.faultNames[state.interrupt], state.error, state.eflags, state.cs, state.ds, state.ss, state.rsp, state.rip, state.rsi, state.rdi, state.rbp, state.rax, state.rbx, state.rdx, state.r8, state.r9, state.r10, state.r11, state.r12, state.r13, state.r14, state.r15 );
+		if( state.interrupt <= 31 ) {
+			version(X86_64) Trace.printf( "\n\nException %d: %s\nCode: %d, flags: %d\n\ncs: %x\tds: %x\tss: %x\nrsp:%x\nrip: %x\nrsi: %x\nrdi: %x\nrbp: %x\n\nrax:%x\nrbx:%x\nrcx:%x\nrdx:%x\n", state.interrupt, Idt.faultNames[state.interrupt], state.error, state.eflags, state.cs, state.ds, state.ss, state.rsp, state.rip, state.rsi, state.rdi, state.rbp, state.rax, state.rbx, state.rdx );
+			else version(X86) Trace.printf( "\n\nException %d: %s\nCode: %d, flags: %d\n\ncs: %x\tds: %x\tss: %x\nesp:%x\neip: %x\nesi: %x\nedi: %x\nebp: %x\n\neax:%x\nebx:%x\necx:%x\nedx:%x\n", state.interrupt, Idt.faultNames[state.interrupt], state.error, state.eflags, state.cs, state.ds, state.ss, state.esp, state.eip, state.esi, state.edi, state.ebp, state.eax, state.ebx, state.edx );
+
 			Cpu.debugBreak();
 			Cpu.Halt();
 		}
@@ -163,13 +165,13 @@ class Idt
 		struct Base
 		{
 			align (1):
-			ushort limit;
-			ulong base;
+			uint16_t limit;
+			void* base;
 		}
 
 		Base pointer;
-		pointer.limit = (ulong.sizeof * table.length) - 1;
-		pointer.base = cast(ulong)table.ptr;
+		pointer.limit = (uintptr_t.sizeof * table.length) - 1;
+		pointer.base = cast(void*)table.ptr;
 
 		version(GNU) {
 			asm{ "lidt %0" : : "m" (pointer); }

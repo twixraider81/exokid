@@ -14,18 +14,21 @@
  */
 module kernel.arch.x86.x64.state;
 
+import kernel.common;
+
 version(X86_64)
 {
 	/**
 	 CPU state for x64
+	 - http://www.lowlevel.eu/wiki/X64#Register
 	 */
 	struct CpuState
 	{
 		align (1):
-		ulong ds;
-		ulong r15, r14, r13, r12, r11, r10, r9, r8;
-		ulong rbp, rdi, rsi, rdx, rcx, rbx, rax;
-		ulong interrupt, error;
-		ulong rip, cs, eflags, rsp, ss;
+		uintptr_t ds;
+		uintptr_t r15, r14, r13, r12, r11, r10, r9, r8;
+		uintptr_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
+		uintptr_t interrupt, error;
+		uintptr_t rip, cs, eflags, rsp, ss;
 	}
 }

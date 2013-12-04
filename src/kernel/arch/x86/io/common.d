@@ -20,5 +20,5 @@ module kernel.arch.x86.io.common;
 abstract class Common
 {
 	public static T Peek(T)( ushort offset );
-	public static void Poke(T)( ushort offset, long data );
+	public static void Poke(T)( ushort offset, intptr_t data );
 }

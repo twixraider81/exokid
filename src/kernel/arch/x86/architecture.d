@@ -22,6 +22,14 @@ version(X86_64)
 		import kernel.arch.x86.x64.state;
 	}
 }
+else version(X86)
+{
+	public
+	{
+		import kernel.boot.multiboot2;
+		import kernel.arch.x86.x32.state;
+	}
+}
 
 public
 {
