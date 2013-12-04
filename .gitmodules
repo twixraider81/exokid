@@ -1,0 +1,6 @@
+[submodule "src/druntime"]
+	path = src/druntime
+	url = ssh://git@github.com/D-Programming-Language/druntime.git
+[submodule "gdc"]
+	path = gdc
+	url = ssh://git@github.com/D-Programming-GDC/GDC.git
