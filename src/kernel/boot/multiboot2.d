@@ -1,34 +1,45 @@
 /**
- Multibootv2 Strukturen
- - http://nongnu.askapache.com/grub/phcoder/multiboot.pdf‎
- - http://www.lowlevel.eu/wiki/Multiboot#Multiboot-Structure
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.boot.multiboot2;
 
 import kernel.common;
 
 /**
- Klasse zum Auslesen der Multibootv2 Infos.
+ Manage and use Multiboot V2 structures.
+ - http://nongnu.askapache.com/grub/phcoder/multiboot.pdf‎
+ - http://www.lowlevel.eu/wiki/Multiboot#Multiboot-Structure
  */
 class Multiboot2
 {
 	/**
-	 Erwartete Bootloader Magic
+	 Expected Bootloader Magic
 	 */
 	private static const bootldrMagic = 0x36d76289;
 
 	/**
-	 Pointer auf die Multiboot Info, wird vom Bootloader übergeben
+	 Pointer to multiboot structure, provided by the bootloader
 	 */
 	private __gshared Info* info;
 
 	/**
-	 Interner String Puffer
+	 Internal string buffer
 	 */
 	private __gshared char[1024] buffer = "";
 
 	/**
-	 Ausschrift der Multibootinfo Tags
+	 Name for multiboot tags
 	 */
 	public static const string[17] tagNames = [
 		"Terminator",
@@ -51,14 +62,14 @@ class Multiboot2
 	];
 
 	/**
-	 Ausschrift der MemoryMap Regionen
+	 Name for memory regions
 	 */
 	public static const string[6] memoryTypeNames = [
 		"Available", "Reserved", "ACPI reclaimable", "ACPI NVS", "Bad", "Unknown"
 	];
 
 	/**
-	 Typen die ein Multibootinfo Tag annehmen kann
+	 Possible tag type
 	 */
 	public enum tagType : ubyte
 	{
@@ -82,7 +93,7 @@ class Multiboot2
 	};
 
 	/**
-	 Typen die der Framebuffer annehmen kann
+	 Possible framebuffer types
 	 */
 	public enum framebufferType : ubyte
 	{
@@ -92,7 +103,7 @@ class Multiboot2
 	};
 
 	/**
-	 Typen die ein MemoryMap Eintrag annehmen kann
+	 Possible memory region types
 	 */
 	public enum memoryType : ubyte
 	{
@@ -105,25 +116,25 @@ class Multiboot2
 	};
 
 	/**
-	 Basisstruktur der Multiboot v2 Info
+	 Multiboot V2 info structure
 	 */
 	private struct Info
 	{
 		align(1):
 
 		/**
-		 Grösse inkl aller Tags
+		 Size including tags
 		 */
 		public uint totalSize;
 
 		/**
-		 Reserviert!?
+		 reserved!?
 		 */
 		public uint reserved;
 	}
 
 	/**
-	 Initialisiert die Multiboot
+	 Initialize multiboot2 reader
 	 */
 	public static bool Initialize( ulong multibootMagic, void* infoAddr )
 	{
@@ -136,7 +147,7 @@ class Multiboot2
 	}
 
 	/**
-	 Liest ein Multi Infotag aus
+	 Reads a tag
 	 */
 	private static T getTag( T )( uint tType )
 	{
@@ -158,7 +169,7 @@ class Multiboot2
 	}
 
 	/**
-	 Multiboot Commandozeile
+	 Multiboot commandline
 	 */
 	@property
 	{
@@ -176,7 +187,7 @@ class Multiboot2
 	}
 
 	/**
-	 Multiboot Bootloadername
+	 Multiboot bootloader name
 	 */
 	@property
 	{
@@ -250,59 +261,59 @@ class Multiboot2
 }
 
 /**
- Basisstruktur eines Multiboot Tags
+ Base structure of a multiboot tag
  */
 struct Tag
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag types
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 };
 
 /**
- Multiboot String Tag
+ Structure of a multiboot string tag
  */
 struct TagString
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 
 	/**
-	Pointer auf den String
+	String pointer
 	*/
 	public char str[0];
 };
 
 /**
- Multiboot Framebuffer Tag
+ Structure of a multiboot framebuffer Tag
  */
 struct TagFramebuffer
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 
 	/**
-	 Physische Adresse des Framebuffers
+	 Physicak address
 	 */
 	public ulong fbAddr;
 
@@ -312,22 +323,22 @@ struct TagFramebuffer
 	public uint fbPitch;
 
 	/**
-	 Breite, meist 80
+	 Width, supposedly 80 chars
 	 */
 	public uint fbWidth;
 
 	/**
-	 Höhe, meist 25
+	 Height, supposedly 25 chars
 	 */
 	public uint fbHeight;
 
 	/**
-	 Bits per Pixel, meist 16
+	 Bits per pixel, supposedly 16
 	 */
 	public ubyte fbBpp;
 
 	/**
-	Framebuffer Typ
+	Framebuffer typ
 	 */
 	public ubyte fbType;
 
@@ -335,17 +346,17 @@ struct TagFramebuffer
 };
 
 /**
- Multiboot Boot device Tag
+ Structure of a multiboot framebuffer device tag
  */
 struct TagBootDevice
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 	
@@ -355,17 +366,17 @@ struct TagBootDevice
 };
 
 /**
- Multiboot Boot device Tag
+ Structure of a multiboot APM tag
  */
 struct TagAPM
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 
@@ -382,44 +393,37 @@ struct TagAPM
 
 
 /**
- Multiboot Framebuffer Tag
+ Structure of a multiboot memory info
  */
 struct TagMemoryInfo
 {
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 
-	/**
-	 Untere Speichergrenze
-	 */
 	public uint memoryLower;
-
-	/**
-	 Obere Speichergrenze
-	 */
 	public uint memoryUpper;
 }
 
 /**
- Multiboot Boot device Tag
+ Structure of a multiboot memory map tag
  */
 struct TagMemoryMap
 {
 	align(1):
 	/**
-	 Typ des Tags, siehe tagTypes
+	 Tag type
 	 */
 	public uint tagType;
 
 	/**
-	 Grösse des Tags
+	 Tag size
 	 */
 	public uint tagSize;
 
