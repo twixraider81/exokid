@@ -1,18 +1,29 @@
 /**
- VGA Framebuffer Konsolenfunktionen
- - http://www.lowlevel.eu/wiki/Textausgabe
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.console.vga;
+module kernel.trace.vga;
 
 import kernel.common;
 
 /**
- VGA Framebuffer Konsole
+ VGA Framebuffer Device
+ - http://www.lowlevel.eu/wiki/Textausgabe
  */
 class VGA : Device
 {
 	/**
-	 Standardfarben
+	 Common colours
 	 */
 	public enum Color : ubyte
 	{
@@ -70,7 +81,7 @@ class VGA : Device
 	}
 
 	/**
-	 Aktuelle X Position in der Matrix
+	 Current X Position
 	 */
 	private __gshared uint _xPos = 0;
 
@@ -89,7 +100,7 @@ class VGA : Device
 	}
 
 	/**
-	 Aktuelle Y Position in der Matrix
+	 Current Y Position
 	 */
 	private __gshared uint _yPos = 0;
 
@@ -108,12 +119,12 @@ class VGA : Device
 	}
 
 	/**
-	 Farbattribut, ergibt sich aus foregroundColor und backgroundColor
+	 Colour attribute, combines foregroundColor and backgroundColor
 	 */
 	private __gshared ubyte _colorAttribute;
 
 	/**
-	 Vordergrund / Textfarbe
+	 Foreground colo(u)r
 	 */
 	private __gshared ubyte _foregroundColor;
 
@@ -132,7 +143,7 @@ class VGA : Device
 	}
 
 	/**
-	 Vordergrund / Textfarbe
+	 Background colo(u)r
 	 */
 	private __gshared ubyte _backgroundColor;
 
@@ -151,7 +162,7 @@ class VGA : Device
 	}
 
 	/**
-	 Löscht den Screen
+	 Clear the screen
 	 */
 	static public void Reset()
 	{
@@ -161,7 +172,7 @@ class VGA : Device
 	}
 
 	/**
-	 Scrollt Zeilen
+	 Scroll lines
 	 */
 	static public void scrollLines( uint numLines )
 	{

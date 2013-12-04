@@ -1,23 +1,34 @@
 /**
- Allgemeine Konsolenfunktionen
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.console.trace;
+module kernel.trace.trace;
 
 import kernel.common;
 
 /**
- Klasse zum Ausgeben von Meldungen und benötigte Hilfsfunktionen.
- Z.b. Nummerformatierung via printf(), oder getopt()
+ Tracing class. Redirects messages to the appropriate devices.
+ Includes message formatting via printf()
  */
 class Trace
 {
 	/**
-	 Ausgabemedium, Kombination von Device Flags
+	 Selected output device
 	 */
 	private __gshared int outputDevice;
 
 	/**
-	 Verfügbare Ausgabedevices
+	Available output devices
 	 */
 	public enum Device : uint
 	{
@@ -27,7 +38,7 @@ class Trace
 	};
 
 	/**
-	 Initialisiert das Tracing
+	 Initialize tracing devices
 	 */
 	public static void Initialize( int mode = Device.E9 | Device.VGA | Device.UART )
 	{
@@ -53,8 +64,8 @@ class Trace
 	}
 
 	/**
-	 Gibt ein einzelnes Zeichen aus
-	 //FIXME: sollte eine verzögerung enthalten um Zeichen nicht zu schnell auszugeben
+	 Output a single char.
+	 //FIXME: should contain some sort of syncing or delay
 	 */
 	static public void printChar( char c )
 	{
@@ -72,7 +83,7 @@ class Trace
 	}
 
 	/**
-	 Gibt ein einen String/mehrere Zeichen aus.
+	 Output a string
 	 */
 	static public void print( const string s )
 	{
@@ -82,8 +93,8 @@ class Trace
 	}
 
 	/**
-	 Formatiert einen string und gibt ihn aus.
-	 Formatparameter:
+	 Format and output a string
+	 Possible parameters:
 	 	- %s
 	 	- %d/%u
 	 	- %x
@@ -124,7 +135,7 @@ class Trace
 	}
 
 	/**
-	 Wandelt eine Ganzzahl in einen String
+	 Convert number to string using a base
 	 */
 	static public char[] utoa(char[] buf, char base, ulong d)
 	{

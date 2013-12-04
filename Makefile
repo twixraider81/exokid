@@ -29,6 +29,7 @@ DCFLAGS	:= -I$(SRCDIR) -I$(RTDIR) -m64 -fversion=BareMetal -nostdinc -nostdlib -
 
 LD		:= $(QUIET)$(CROSSDIR)bin/$(TARGET)-ld
 LDFLAGS	:= -nostdlib --reduce-memory-overheads --error-unresolved-symbols -z defs -z max-page-size=$(PSIZE)
+LDSCRIPT:=$(SRCDIR)kernel/arch/x86/x64/link.ld
 
 CC		:= $(QUIET)$(CROSSDIR)bin/$(TARGET)-gcc
 CCFLAGS	:= -std=c99 -nostdlib -ffreestanding -mcmodel=kernel -mno-red-zone -mno-mmx -mno-sse3 -mno-3dnow -c -o 
@@ -51,8 +52,8 @@ help:
 
 kernel: kernel.bin
 
-kernel.bin: Makefile $(OBJFILES) $(SRCDIR)kernel/arch/x64/link.ld
-	$(LD) $(LDFLAGS) -T $(SRCDIR)kernel/arch/x64/link.ld -o $(DIR)kernel.bin $(OBJFILES)
+kernel.bin: Makefile $(OBJFILES) $(LDSCRIPT)
+	$(LD) $(LDFLAGS) -T $(LDSCRIPT) -o $(DIR)kernel.bin $(OBJFILES)
 
 clean:
 	$(QUIET)$(RM) $(OBJFILES)
