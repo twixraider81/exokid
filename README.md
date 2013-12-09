@@ -1,5 +1,7 @@
 exokid - an EXOkernel In D
 ==========================
+    (In its infancy)
+
 Quickstart
 ----------
 - ./bootstrap.sh -a x86_64-pc-elf
@@ -16,16 +18,16 @@ To start the build process first execute bootstrap.sh.
 
 The script can be controlled via:
 	-a (x86_64-pc-elf|"x86_64-pc-elf i686-pc-elf aarch64-none-elf")
-The bootstrap script will check for necessary tools and compile a cross compiler
-toolchain.
+The bootstrap script will check for necessary tools and compile a cross compiler toolchain.
 
 This will take a serious amount of time (and disk space), please be patient.
 The built compiler will reside under ./cc/, so don't delete this folder.
-For LDC you will need libconfig++-dev. For Bochs you will need libx11-dev & libgtk2.0-dev.
+For LDC your system will need libconfig++-dev.
+For Bochs you will need libx11-dev & libgtk2.0-dev.
 
-After that completed configure & build the source.
-./waf configure --compiler=gdc --arch=x64
-./waf build
+After the bootstrap script completed, go ahead configure & build the source.
+- ./waf configure
+- ./waf build bochs
 
 
 Background
