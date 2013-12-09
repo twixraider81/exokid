@@ -23,8 +23,8 @@ VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
 CCDIR = TOP + '/cc/bin/'
-RTDIR = TOP + '/gdc/libphobos/libdruntime/'
-SRCDIR = TOP + '/src/'
+RTDIR = 'gdc/libphobos/libdruntime/'
+SRCDIR = 'src/'
 SUPPORTDIR = TOP + '/support/'
 IMAGE = TOP + '/build/kernel.img'
 KERNEL = TOP + '/build/kernel.bin'
@@ -192,7 +192,7 @@ def build(bld):
 
 	if bld.env.ARCH == 'x64':
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x64/*.S' )
-	elif conf.options.arch == 'x32':
+	elif bld.env.ARCH == 'x32':
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x32/*.S' )
 
 	bld( features="d asm kernel sym image", target='kernel.bin', source=sources, includes=[RTDIR,SRCDIR] )
