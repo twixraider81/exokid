@@ -19,7 +19,7 @@ PATHO=$PATH
 CROSSDIR="$DIR/cc"  # crosstools dir
 
 
-BUILDARCHS="x86_64-pc-elf i686-pc-elf aarch64-none-elf" # x86_64-pc-elf i686-pc-elf aarch64-none-elf
+BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf i686-pc-elf aarch64-none-elf
 BUILDTARGET="" # target to build
 while getopts "a:" opt; do
 	case "$opt" in

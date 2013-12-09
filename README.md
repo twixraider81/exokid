@@ -1,5 +1,18 @@
 exokid - an EXOkernel In D
 ==========================
+Quickstart
+----------
+./bootstrap.sh -a x86_64-pc-elf
+./waf configure --arch=x64 --compiler=gdc
+./waf build -j4
+
+Look at ./waf --help for further commands, like
+./waf todo
+./waf backup
+./waf bochs
+./waf qemu
+./waf gdb
+./waf kdbg
 
 Building
 --------
