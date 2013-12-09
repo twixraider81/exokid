@@ -191,8 +191,10 @@ def build(bld):
 	sources = bld.path.ant_glob( SRCDIR + '**/*.d')
 
 	if bld.env.ARCH == 'x64':
+		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/*.S' )
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x64/*.S' )
 	elif bld.env.ARCH == 'x32':
+		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/*.S' )
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x32/*.S' )
 
 	bld( features="d asm kernel sym image", target='kernel.bin', source=sources, includes=[RTDIR,SRCDIR] )
