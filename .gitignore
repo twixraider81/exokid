@@ -1,7 +1,5 @@
-/cross-aarch64-none-elf
-/cross-i686-pc-elf
-/cross-x86_64-pc-elf
-*.o
-/kernel.bin
-/kernel.img
-/kernel.sym
+/cc
+/build
+/waf
+/.waf*
+/.lock*

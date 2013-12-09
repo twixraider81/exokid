@@ -10,17 +10,8 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1386117932915</id>
-			<name></name>
-			<type>30</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*.o</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1386110359100</id>
-			<name>cross-aarch64-none-elf</name>
+			<id>1386547706984</id>
+			<name>build</name>
 			<type>30</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -28,8 +19,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1386110347424</id>
-			<name>cross-i686-pc-elf</name>
+			<id>1386407581999</id>
+			<name>cc</name>
 			<type>30</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -37,8 +28,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1386110386495</id>
-			<name>cross-x86_64-pc-elf</name>
+			<id>1386547723900</id>
+			<name>gdc/gcc</name>
 			<type>30</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
