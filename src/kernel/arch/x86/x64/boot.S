@@ -7,6 +7,10 @@ extern kmain
 extern _start
 extern _end
 
+PAGE_SIZE		equ 0x1000
+STACK_SIZE		equ 0x4000
+KERNEL_VMA		equ 0xffffffff80000000
+
 ; paging structures
 PAGE_TABLES		equ 0x200
 PAGE_PRESENT	equ 0x1
