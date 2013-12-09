@@ -26,7 +26,7 @@ else version(X86)
 {
 	public
 	{
-		import kernel.boot.multiboot2;
+		import kernel.boot.multiboot;
 		import kernel.arch.x86.x32.state;
 	}
 }
