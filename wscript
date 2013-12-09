@@ -28,6 +28,7 @@ SRCDIR = 'src/'
 SUPPORTDIR = TOP + '/support/'
 IMAGE = TOP + '/build/kernel.img'
 KERNEL = TOP + '/build/kernel.bin'
+CONF = 'build/c4che/_cache.py'
 
 # load options
 def options(opt):
@@ -102,7 +103,7 @@ def configure(conf):
 	# gdc specifics
 	if conf.options.compiler == 'gdc':
 		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-nostdinc', '-nostdlib', '-fno-bounds-check', '-mno-mmx', '-mno-sse3', '-mno-3dnow'] )
+		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-fno-bounds-check', '-mno-mmx', '-mno-sse3', '-mno-3dnow'] )
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
 		# release mode
@@ -114,7 +115,7 @@ def configure(conf):
 
 		# x64 specifics
 		if conf.options.arch == 'x64':
-			conf.env.append_value( 'DFLAGS', ['-m64', '-mcmodel=kernel', '-mno-red-zone'] )
+			conf.env.append_value( 'DFLAGS', ['-m64'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
 		# x32 specifics
 		elif conf.options.arch == 'x32':
@@ -176,7 +177,7 @@ def image(self):
 
 class image(Task.Task):
 	shell = True
-	run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'disk.img.xz > ${TGT}; mount -o loop,offset=32256 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub; umount tmp; rmdir tmp'
+	run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'disk.img.xz > ${TGT}; mount -o loop,offset=32256 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; umount tmp; rmdir tmp'
 	ext_out = ['.img']
 	color = 'CYAN'
 	inst_to = None
@@ -201,17 +202,18 @@ def build(bld):
 
 
 # todo target
-import pprint
 def todo(ctx):
 	"Show todos"
 	env = ConfigSet()
-	env.load( ctx.path.make_node( 'build/c4che/_cache.py' ).abspath() )
+	env.load( ctx.path.make_node( CONF ).abspath() )
 	subprocess.call( env.GREP + ' -Hnr "//FIXME" '  + SRCDIR, shell=True )
 
 
 # backup target
 def backup(ctx):
 	"Create backup at ~/backup/"
+	env = ConfigSet()
+	env.load( ctx.path.make_node( CONF ).abspath() )
 	subprocess.call( env.TAR + ' --exclude cc --exclude build --exclude gdc/.git --exclude gdc/gcc -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
 
 
@@ -225,15 +227,19 @@ def bochs(ctx):
 def qemu(ctx):
 	"Start qemu and load kernel.img"
 	env = ConfigSet()
-	env.load( ctx.path.make_node( 'build/c4che/_cache.py' ).abspath() )
-	subprocess.call( env.QEMU + ' --no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio -hda ' + IMAGE, shell=True )
+	env.load( ctx.path.make_node( CONF ).abspath() )
+
+	if env.ARCH == 'x64':
+		subprocess.call( env.QEMU + ' --no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio -hda ' + IMAGE, shell=True )
+	elif env.ARCH == 'x32':
+		subprocess.call( env.QEMU + ' --no-reboot -no-shutdown -s -S -m 512 -monitor stdio -serial stdio -kernel ' + KERNEL, shell=True )
 
 
 # gdb target
 def gdb(ctx):
 	"Start GDB and load kernel.bin"
 	env = ConfigSet()
-	env.load( ctx.path.make_node( 'build/c4che/_cache.py' ).abspath() )
+	env.load( ctx.path.make_node( CONF ).abspath() )
 	subprocess.call( env.GDB + ' --tui --eval-command="target remote :1234" ' + KERNEL, shell=True )
 
 
@@ -241,5 +247,5 @@ def gdb(ctx):
 def kdbg(ctx):
 	"Start KDBG and load kernel.bin"
 	env = ConfigSet()
-	env.load( ctx.path.make_node( 'build/c4che/_cache.py' ).abspath() )
+	env.load( ctx.path.make_node( CONF ).abspath() )
 	subprocess.call( env.KDBG + ' -r :1234  ' + KERNEL, shell=True )
