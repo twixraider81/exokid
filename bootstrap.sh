@@ -16,10 +16,10 @@ set -x # be verbose about what we're doing for now
 
 DIR=`pwd`
 PATHO=$PATH
-CROSSDIR="$DIR/cc"  # crosstools dir
+UNAME=`uname -s | grep -m1 -ioP '([a-z])+' | awk 'NR==1{print $0}'`
+CROSSDIR="$DIR/cc/$UNAME"  # crosstools dir
 
-
-BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf i686-pc-elf aarch64-none-elf
+BUILDARCHS="x86_64-pc-elf i686-pc-elf" # x86_64-pc-elf i686-pc-elf aarch64-none-elf
 BUILDTARGET="" # target to build
 while getopts "a:" opt; do
 	case "$opt" in
@@ -31,7 +31,7 @@ done
 
 
 # simple checks
-TOOLS="curl git bison flex make gcc gpp texindex gdb nasm tar xzcat python patch"
+TOOLS="curl git bison flex make gcc texindex gdb nasm tar xzcat python patch"
 for TOOL in $TOOLS; do
 	if ! which "$TOOL"; then
 		echo "$TOOL not found; exiting"
@@ -191,3 +191,8 @@ if ! test -f "waf"; then
 	curl -o "$DIR/waf" "http://waf.googlecode.com/files/waf-1.7.13"
 	chmod a+rx "$DIR/waf"
 fi
+
+EXTRAS="build_logs eclipse objcopy relocation syms"
+for EXTRA in $EXTRAS; do
+	./waf update --files="$EXTRA"
+done

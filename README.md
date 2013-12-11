@@ -9,7 +9,7 @@ Quickstart
 - ./waf build -j4
 
 Look at ./waf --help for further commands, like
-todo, backup, bochs, qemu, gdb, kdbg
+todo, backup, bochs, qemu, gdb, kdbg, eclipse
 
 Building
 --------
@@ -21,9 +21,9 @@ The script can be controlled via:
 The bootstrap script will check for necessary tools and compile a cross compiler toolchain.
 
 This will take a serious amount of time (and disk space), please be patient.
-The built compiler will reside under ./cc/, so don't delete this folder.
-For LDC your system will need libconfig++-dev.
-For Bochs you will need libx11-dev & libgtk2.0-dev.
+The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).
+Do not delete this folder.
+For LDC your system will need libconfig++-dev. For Bochs you will need libx11-dev & libgtk2.0-dev.
 
 After the bootstrap script completed, go ahead configure & build the source.
 - ./waf configure
@@ -39,13 +39,17 @@ so please bear with me...
 
 Credits & thanks
 ----------------
- - To the 2 impressive wikis & forums - http://www.lowlevel.eu & http://wiki.osdev.org
+ - To the 2 impressive wikis & forums - http://www.lowlevel.eu/ & http://wiki.osdev.org/
  - James Molloy - http://www.jamesmolloy.co.uk/tutorial_html/index.html
  - Brokenthorn OSDev series http://www.brokenthorn.com/Resources/OSDevIndex.html
- - Digital Mars and everything druntime http://dlang.org/
- - The GDC creators - https://github.com/D-Programming-GDC/GDC
- - The LDC creators - https://github.com/ldc-developers/ldc
- - XOmB Exokernel - http://www.xomb.org/
- - Arc Kernel - https://github.com/grahamedgecombe/arc
- - Linux - http://www.kernel.org
- - NetBSD - http://www.netbsd.org/
+ - Digital Mars and everything D - http://dlang.org/ & https://github.com/D-Programming-Language
+ - The GDC creators - https://github.com/D-Programming-GDC/GDC/
+ - The LDC creators - https://github.com/ldc-developers/ldc/
+ - XOmB Exokernel - https://www.xomb.org/
+ - Arc Kernel - https://github.com/grahamedgecombe/arc/
+ - GNU - https://www.gnu.org/
+ - Linux - https://www.kernel.org/
+ - NetBSD - https://www.netbsd.org/
+ - waf - https://code.google.com/p/waf/
+ - Eclipse Foundation - https://www.eclipse.org/
+ - EFF - https://www.eff.org
