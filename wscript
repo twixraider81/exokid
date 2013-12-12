@@ -31,19 +31,19 @@ KERNEL = TOP + '/build/kernel.bin'
 CONF = 'build/c4che/_cache.py'
 
 # initialization
-def init(ctx):
-	ctx.load('build_logs')
+#def init(ctx):
+#	ctx.load('build_logs')
 
 # load options
 def options(opt):
-	opt.load( 'gcc' )
+	#opt.load( 'gcc' )
 	opt.load( 'nasm' )
-	opt.load( 'compiler_d' )
-	opt.load( 'compiler_c' )
+	#opt.load( 'compiler_c' )
 	opt.load( 'ar' )
 	opt.load( 'gas' )
 	opt.load( 'eclipse' )
 	opt.load( 'objcopy' )
+	opt.load( 'd' )
 
 	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32)' )
 	opt.add_option( '--mode', action = 'store', default = 'debug', help = 'the mode to compile in (debug or release)' )
@@ -53,7 +53,7 @@ def options(opt):
 # configure target
 def configure(conf):
 	# configure assembler & select cross compiler
-	if conf.options.arch == 'x64':
+	if conf.options.arch == 'x64' or conf.options.arch == 'x86_64-pc-elf':
 		tuple = 'x86_64-pc-elf'
 		conf.load( 'nasm' )
 		conf.env.append_value( 'ASFLAGS', [ '-felf64', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
@@ -62,7 +62,7 @@ def configure(conf):
 			conf.env.append_value( 'DFLAGS', ['-g','-Fdwarf'] ) # -m amd64 -g dwarf2 for yasm?
 
 		conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
-	elif conf.options.arch == 'x32':
+	elif conf.options.arch == 'x32' or conf.options.arch == 'i686-pc-elf':
 		tuple = 'i686-pc-elf'
 		conf.load( 'nasm' )
 		conf.env.append_value( 'ASFLAGS', [ '-felf32', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
@@ -80,17 +80,6 @@ def configure(conf):
 	conf.env.MODE = conf.options.mode;
 
 
-	# detect compiler & tools
-	if conf.options.compiler == 'gdc':
-		conf.find_program( tuple + '-gdc', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'gdc' )
-	elif conf.options.compiler == 'ldc2':
-		conf.find_program( 'ldc2', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'ldc2' )
-	elif conf.options.compiler == 'dmd2':
-		conf.find_program( 'dmd2', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'dmd' )
-
 	conf.find_program( 'awk', var = 'AWK', mandatory = True )
 	conf.find_program( 'grep', var = 'GREP', mandatory = True )
 	conf.find_program( 'tar', var = 'TAR', mandatory = False )
@@ -98,20 +87,37 @@ def configure(conf):
 	conf.find_program( 'gdb', var = 'GDB', mandatory = False )
 	conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
 	conf.find_program( tuple + '-gcc', var='CC', path_list=CCDIR, mandatory = True )
+	conf.find_program( tuple + '-ar', var='AR', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-ld', var = 'LD', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-as', var = 'AS', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
-	conf.load( 'gcc' )
-	conf.load( 'compiler_c' )
+	#conf.load( 'gcc' )
+	#conf.load( 'compiler_c' )
 	conf.load( 'objcopy' )
+
+
+	# detect compiler & tools
+	if conf.options.compiler == 'gdc':
+		conf.find_program( tuple + '-gdc', path_list=CCDIR, var='D', mandatory = True )
+		conf.load( 'gdc' )
+	elif conf.options.compiler == 'ldc2' or conf.options.compiler == 'ldc':
+		conf.find_program( 'ldc2', path_list=CCDIR, var='D', mandatory = True )
+		conf.fatal( 'ldc2 and dmd unsupported for now.' )
+		conf.load( 'ldc2' )
+	elif conf.options.compiler == 'dmd2' or conf.options.compiler == 'dmd':
+		conf.fatal( 'ldc2 and dmd unsupported for now.' )
+		conf.find_program( 'dmd2', path_list=CCDIR, var='D', mandatory = True )
+		conf.load( 'dmd' )
+	else:
+		conf.fatal( '--compiler invalid compiler.' )
 
 
 	# gdc specifics
 	if conf.options.compiler == 'gdc':
 		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow', '-fno-bounds-check'] )
+		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow', '-fno-bounds-check'] )
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
 		# release mode
@@ -123,7 +129,7 @@ def configure(conf):
 
 		# x64 specifics
 		if conf.options.arch == 'x64':
-			conf.env.append_value( 'DFLAGS', ['-m64'] )
+			conf.env.append_value( 'DFLAGS', ['-m64', '-mcmodel=kernel'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
 		# x32 specifics
 		elif conf.options.arch == 'x32':
