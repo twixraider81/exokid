@@ -110,12 +110,12 @@ def configure(conf):
 	# gdc specifics
 	if conf.options.compiler == 'gdc':
 		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-fno-bounds-check', '-mno-mmx', '-mno-sse3', '-mno-3dnow'] )
+		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow'] )
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
 		# release mode
 		if conf.options.mode == 'release':
-			conf.env.append_value( 'DFLAGS', ['-O3'] )
+			conf.env.append_value( 'DFLAGS', ['-O2'] )
 		# debug mode
 		elif conf.options.mode == 'debug':
 			conf.env.append_value( 'DFLAGS', ['-O0', '-g', '-fdebug'] )
@@ -136,7 +136,7 @@ def configure(conf):
 
 		# release mode
 		if conf.options.mode == 'release':
-			conf.env.append_value( 'DFLAGS', ['-O3'] )
+			conf.env.append_value( 'DFLAGS', ['-O2'] )
 		# debug mode
 		elif conf.options.mode == 'debug':
 			conf.env.append_value( 'DFLAGS', ['-O0', '-d-debug', '-g'] )
@@ -205,7 +205,7 @@ def build(bld):
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/*.S' )
 		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x32/*.S' )
 
-	bld( features="d asm kernel sym image", target='kernel.bin', source=sources, includes=[RTDIR,SRCDIR] )
+	bld( features="d asm kernel sym image", target='kernel.bin', use='druntime', source=sources, includes=[RTDIR,SRCDIR] )
 
 
 # todo target

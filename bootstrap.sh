@@ -17,14 +17,22 @@ set -x # be verbose about what we're doing for now
 DIR=`pwd`
 PATHO=$PATH
 UNAME=`uname -s | grep -m1 -ioP '([a-z])+' | awk 'NR==1{print $0}'`
-CROSSDIR="$DIR/cc/$UNAME"  # crosstools dir
 
-BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf i686-pc-elf aarch64-none-elf
-BUILDTARGET="" # target to build
-while getopts "a:c" opt; do
+# crosstools dir
+CROSSDIR="$DIR/cc/$UNAME"
+
+KEEP=0
+
+# x86_64-pc-elf i686-pc-elf aarch64-none-elf
+BUILDARCHS="x86_64-pc-elf" 
+
+while getopts "a:ck" opt; do
 	case "$opt" in
 		a)
 			BUILDARCHS=${OPTARG,,}
+		;;
+		k)
+			KEEP=1
 		;;
 		c)
 			# clean build tools dir
@@ -179,12 +187,20 @@ for BUILDARCH in $BUILDARCHS; do
 		
 		cd "$CROSSDIR/bochs-2.6.2"
 		patch -p1 < ../../../support/bochs.patch
-		./configure --enable-smp --enable-cpu-level=6 --enable-all-optimizations --enable-x86-64 --enable-pci --enable-vmx --enable-debugger --enable-disasm --enable-debugger-gui --enable-logging --enable-fpu --enable-3dnow --enable-sb16=dummy --enable-cdrom --enable-x86-debugger --enable-iodebug --disable-plugins --disable-docbook --with-x --with-x11 --with-term --enable-ne2000 --enable-large-ramfile --enable-pae --enable-4meg-pages --prefix="$CROSSDIR"
+		./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16 --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
 
 		make
 		make install
 	fi
 done
+
+if [ $KEEP -eq 0 ]; then
+	rm -rf $CROSSDIR/binutils-*
+	rm -rf $CROSSDIR/gcc-*
+	rm -rf $CROSSDIR/gdc
+	rm -rf $CROSSDIR/ldc
+	rm -rf $CROSSDIR/bochs-*
+fi
 
 cd "$DIR"
 

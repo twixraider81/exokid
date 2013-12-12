@@ -5,7 +5,6 @@ exokid - an EXOkernel In D
 Quickstart
 ----------
 - ./bootstrap.sh -a
-- ./bootstrap.sh -c
 - ./waf configure
 - ./waf build
 
@@ -21,10 +20,9 @@ necessary tools and compile a cross compiler toolchain.
 
 - ./bootstrap.sh -a x86_64-pc-elf
 - ./bootstrap.sh -c
-
-The script can be controlled via:
 - -a : cross compiler architecture to build, space sperated, i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
-- -c : cleanup downloaded
+- -c : force cleanup (delete downloaded folders)
+- -k : keep downloaded / configured tools
 
 This will take a serious amount of time (and disk space), please be patient.
 The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).

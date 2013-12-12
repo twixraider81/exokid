@@ -1,5 +1,6 @@
-/cc
-/build
-/waf
 /.waf*
+/build
+/cc
+/logs
 /.lock*
+/waf

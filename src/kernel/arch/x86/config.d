@@ -39,6 +39,10 @@ class Config
 	 */
 	public static void Initialize( ulong multibootMagic, ulong* multibootInfo )
 	{
+		if( Port.Peek!(ubyte)( BDA.Port.BOCHS ) == BDA.Port.BOCHS ) {
+			bAvailable = true;
+		}
+		Cpu.debugBreak();
 		version(X86_64)
 		{
 			if( !Multiboot2.Initialize( multibootMagic, PhysMem.ptrToVirtual( multibootInfo ) ) ) {
@@ -56,16 +60,19 @@ class Config
 				_consoleRows = cast(ushort)Multiboot2.frameBuffer.fbHeight;
 			}
 		}
-
-		if( Port.Peek!(ubyte)( BDA.Port.BOCHS ) == BDA.Port.BOCHS ) {
-			bAvailable = true;
-		}
 	}
 
 	/**
 	 Virtual memory offset
 	 */
-	private static const offset = 0xFFFFFEFF00000000;
+	version(X86_64)
+	{
+		private static const offset = 0xFFFFFEFF00000000;
+	}
+	else version(X86)
+	{
+		private static const offset = 0xFFFF8000000;
+	}
 
 	@property
 	{
