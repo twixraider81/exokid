@@ -23,9 +23,8 @@ necessary tools and compile a cross compiler toolchain.
 - ./bootstrap.sh -c
 
 The script can be controlled via:
-	-a : cross compiler architecture to build, space sperated
-		i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
-	-c : cleanup downloaded
+- -a : cross compiler architecture to build, space sperated, i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
+- -c : cleanup downloaded
 
 This will take a serious amount of time (and disk space), please be patient.
 The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).
