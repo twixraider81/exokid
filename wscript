@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, subprocess
+import os, subprocess, sys, re
 from waflib import Build, Context, Scripting, Utils, Task, TaskGen
 from waflib.Build import BuildContext
 from waflib.ConfigSet import ConfigSet 
@@ -22,13 +22,17 @@ APPNAME = 'exokid'
 VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
-CCDIR = TOP + '/cc/bin/'
+CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
 RTDIR = 'gdc/libphobos/libdruntime/'
 SRCDIR = 'src/'
 SUPPORTDIR = TOP + '/support/'
 IMAGE = TOP + '/build/kernel.img'
 KERNEL = TOP + '/build/kernel.bin'
 CONF = 'build/c4che/_cache.py'
+
+# initialization
+def init(ctx):
+	ctx.load('build_logs')
 
 # load options
 def options(opt):
@@ -38,6 +42,8 @@ def options(opt):
 	opt.load( 'compiler_c' )
 	opt.load( 'ar' )
 	opt.load( 'gas' )
+	opt.load( 'eclipse' )
+	opt.load( 'objcopy' )
 
 	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32)' )
 	opt.add_option( '--mode', action = 'store', default = 'debug', help = 'the mode to compile in (debug or release)' )
@@ -55,7 +61,7 @@ def configure(conf):
 		if conf.options.mode == 'debug':
 			conf.env.append_value( 'DFLAGS', ['-g','-Fdwarf'] ) # -m amd64 -g dwarf2 for yasm?
 
-		conf.find_program( 'qemu-system-x86_64', var = 'QEMU')
+		conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
 	elif conf.options.arch == 'x32':
 		tuple = 'i686-pc-elf'
 		conf.load( 'nasm' )
@@ -64,7 +70,7 @@ def configure(conf):
 		if conf.options.mode == 'debug':
 			conf.env.append_value( 'DFLAGS', ['-g','-Fdwarf'] )
 
-		conf.find_program( 'qemu-system-i386', var = 'QEMU')
+		conf.find_program( 'qemu-system-i386', var = 'QEMU', mandatory = False )
 	else:
 		conf.fatal( '--arch invalid architecture.' )
 
@@ -87,9 +93,9 @@ def configure(conf):
 
 	conf.find_program( 'awk', var = 'AWK', mandatory = True )
 	conf.find_program( 'grep', var = 'GREP', mandatory = True )
-	conf.find_program( 'tar', var = 'TAR' )
-	conf.find_program( 'gdb', var = 'GDB' )
-	conf.find_program( 'kdbg', var = 'KDBG' )
+	conf.find_program( 'tar', var = 'TAR', mandatory = False )
+	conf.find_program( 'gdb', var = 'GDB', mandatory = False )
+	conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
 	conf.find_program( tuple + '-gcc', var='CC', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-ld', var = 'LD', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-as', var = 'AS', path_list=CCDIR, mandatory = True )
@@ -98,6 +104,7 @@ def configure(conf):
 	conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
 	conf.load( 'gcc' )
 	conf.load( 'compiler_c' )
+	conf.load( 'objcopy' )
 
 
 	# gdc specifics
@@ -214,7 +221,7 @@ def backup(ctx):
 	"Create backup at ~/backup/"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.TAR + ' --exclude cc --exclude build --exclude gdc/.git --exclude gdc/gcc -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
+	subprocess.call( env.TAR + ' --exclude cc --exclude logs --exclude build --exclude gdc/.git --exclude gdc/gcc -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
 
 
 # bochs target

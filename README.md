@@ -4,29 +4,40 @@ exokid - an EXOkernel In D
 
 Quickstart
 ----------
-- ./bootstrap.sh -a x86_64-pc-elf
-- ./waf configure --arch=x64 --compiler=gdc
-- ./waf build -j4
+- ./bootstrap.sh -a
+- ./bootstrap.sh -c
+- ./waf configure
+- ./waf build
 
 Look at ./waf --help for further commands, like
 todo, backup, bochs, qemu, gdb, kdbg, eclipse
 
+
 Building
 --------
 
-To start the build process first execute bootstrap.sh.
+To start the build process first execute bootstrap.sh. The script will check for
+necessary tools and compile a cross compiler toolchain.
+
+- ./bootstrap.sh -a x86_64-pc-elf
+- ./bootstrap.sh -c
 
 The script can be controlled via:
-	-a (x86_64-pc-elf|"x86_64-pc-elf i686-pc-elf aarch64-none-elf")
-The bootstrap script will check for necessary tools and compile a cross compiler toolchain.
+	-a : cross compiler architecture to build, space sperated
+		i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
+	-c : cleanup downloaded
 
 This will take a serious amount of time (and disk space), please be patient.
 The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).
 Do not delete this folder.
-For LDC your system will need libconfig++-dev. For Bochs you will need libx11-dev & libgtk2.0-dev.
+For Cygwin LDC is disabled, as it only builds with a few manual fixes.
+(Clang exception linking & WIN32 defines, configuring libconfig build system etc.)
+
+For LDC your system will need libconfig++-dev (on cygwin configure manually with).
+For Bochs you will need libx11-dev & libgtk2.0-dev.
 
 After the bootstrap script completed, go ahead configure & build the source.
-- ./waf configure
+- ./waf configure --arch=x64 --compiler=gdc
 - ./waf build bochs
 
 
