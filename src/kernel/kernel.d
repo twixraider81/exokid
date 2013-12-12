@@ -30,8 +30,9 @@ class Kernel
 
 		Trace.Initialize( Trace.Device.VGA | Trace.Device.E9 | Trace.Device.UART );
 
-		Trace.printf( "Exokid kernel booting via %s...\n\n", Multiboot2.bootLoader );
-		Trace.printf( " * Commandline: %s\n", Multiboot2.commandLine );
+		//Trace.printf( "Exokid kernel booting via %s...\n\n", Multiboot2.bootLoader );
+		Trace.print( "Exokid kernel booting...\n\n" );
+		//Trace.printf( " * Commandline: %s\n", Config.commandLine );
 		Trace.printf( " * Framebuffer: %x, %d:%d\n", Config.frameBuffer, Config.consoleColumns, Config.consoleRows );
 
 		Architecture.Initialize();
