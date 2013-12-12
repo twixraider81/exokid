@@ -19,7 +19,6 @@ import kernel.common;
 /**
  Manage and use Multiboot V2 structures.
  - http://nongnu.askapache.com/grub/phcoder/multiboot.pdf‎
- - http://www.lowlevel.eu/wiki/Multiboot#Multiboot-Structure
  */
 class Multiboot2
 {
