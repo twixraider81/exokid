@@ -41,6 +41,7 @@ while getopts "a:ck" opt; do
 			rm -rf $CROSSDIR/gdc
 			rm -rf $CROSSDIR/ldc
 			rm -rf $CROSSDIR/bochs-*
+			rm -rf $CROSSDIR/mtools-*
 			exit 0
 		;;
 	esac
@@ -86,7 +87,7 @@ for BUILDARCH in $BUILDARCHS; do
 		export TARGET="$BUILDARCH"
 
 		cd "$BINBUILD"
-		make clean
+		#make clean
 		../binutils-2.24/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --enable-64-bit-bfd # can we do this here?
 		make all
 		make install
@@ -153,14 +154,14 @@ for BUILDARCH in $BUILDARCHS; do
 		export PATH="$CROSSDIR/bin:$PATHO:$CROSSDIR/bin"
 
 		cd "$GCCBUILD"
-		make clean
+		#make clean
 		../gcc-4.8.2/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --enable-languages=c,c++,d --without-headers --disable-libphobos
 		make all-gcc
 		make install-gcc
 	fi
 
 
-	if [[ ! -f "$LDC" && "$UNAME" -ne "CYGWIN" ]]; then
+	if [[ ! -f "$LDC" && "$UNAME" != "CYGWIN" ]]; then
 		LDCBUILD="$CROSSDIR/ldc/build-$BUILDARCH"
 
 		cd "$CROSSDIR"
@@ -172,7 +173,7 @@ for BUILDARCH in $BUILDARCHS; do
 		export PATH="$CROSSDIR/bin:$PATHO:$CROSSDIR/bin"
 		cd "$LDCBUILD"
 
-		make clean 
+		#make clean 
 		cmake .. -DCMAKE_INSTALL_PREFIX="$CROSSDIR" -DINCLUDE_INSTALL_DIR="$CROSSDIR/include"
 		make
 		make install
@@ -184,7 +185,8 @@ for BUILDARCH in $BUILDARCHS; do
 		test -f "$CROSSDIR/bochs-2.6.2.tar.gz" || curl -o "$CROSSDIR/bochs-2.6.2.tar.gz" -L http://downloads.sourceforge.net/project/bochs/bochs/2.6.2/bochs-2.6.2.tar.gz
 
 		test -d "$CROSSDIR/bochs-2.6.2" || tar -xzf "$CROSSDIR/bochs-2.6.2.tar.gz" -C "$CROSSDIR"
-		
+
+		#make clean
 		cd "$CROSSDIR/bochs-2.6.2"
 		patch -p1 < ../../../support/bochs.patch
 		./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16 --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
@@ -194,13 +196,36 @@ for BUILDARCH in $BUILDARCHS; do
 	fi
 done
 
+MTOOLS="$CROSSDIR/bin/mtools"
+if [[ ! -f "$MTOOLS" && "$UNAME" == "CYGWIN" ]]; then
+	test -f "$CROSSDIR/mtools-4.0.18.tar.bz2" || curl -o "$CROSSDIR/mtools-4.0.18.tar.bz2" ftp://ftp.gnu.org/gnu/mtools/mtools-4.0.18.tar.bz2
+	test -d "$CROSSDIR/mtools-4.0.18" || tar -xjf "$CROSSDIR/mtools-4.0.18.tar.bz2" -C "$CROSSDIR"
+
+	#make clean
+	cd "$CROSSDIR/mtools-4.0.18"
+	patch -p1 < ../../../support/mtools.patch
+
+	export PREFIX="$CROSSDIR"
+	export TARGET="$BUILDARCH"
+	export PATH="$CROSSDIR/bin:$PATHO:$CROSSDIR/bin"
+
+	./configure --prefix="$CROSSDIR"
+
+	make
+	make install
+
+	echo "drive z: file=\"$DIR/build/kernel.img\" partition=1" > ~/.mtoolsrc
+fi
+
 if [ $KEEP -eq 0 ]; then
 	rm -rf $CROSSDIR/binutils-*
 	rm -rf $CROSSDIR/gcc-*
 	rm -rf $CROSSDIR/gdc
 	rm -rf $CROSSDIR/ldc
 	rm -rf $CROSSDIR/bochs-*
+	rm -rf $CROSSDIR/mtools-*
 fi
+
 
 cd "$DIR"
 
