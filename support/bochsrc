@@ -10,6 +10,6 @@ port_e9_hack: enabled=1
 magic_break: enabled=1
 display_library: x, options="gui_debug"
 pci: enabled=1, chipset=i440fx
-debug_symbols: file=build/kernel.sym, offset=0x1000
+debug_symbols: file=build/kernel.sym
 com1: enabled=1, mode=file, dev=build/kernel.out
 log: build/bochs.out

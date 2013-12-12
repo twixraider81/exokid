@@ -1,0 +1,12 @@
+diff -rupN ../mtools-4.0.18/Makefile.in ./Makefile.in
+--- ../mtools-4.0.18/Makefile.in	2010-10-17 17:41:09.000000000 +0200
++++ ./Makefile.in	2013-12-12 19:59:48.290052400 +0100
+@@ -58,7 +58,7 @@ HOST_ID    = @HOST_ID@
+ DEFS       = @DEFS@ -DSYSCONFDIR=\"$(sysconfdir)\" $(HOST_ID)
+ 
+ LDFLAGS     = @LDFLAGS@
+-LIBS        = @LIBS@
++LIBS        = -liconv @LIBS@
+ SHLIB       = @SHLIB@
+ MACHDEPLIBS = @MACHDEPLIBS@	
+ LN_S        = @LN_S@
