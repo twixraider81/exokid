@@ -1,0 +1,7 @@
+[compileoptions]
+buildtype = EXECUTABLE
+out = build
+outname = dummy
+buildtool = 
+extraOptions = 
+

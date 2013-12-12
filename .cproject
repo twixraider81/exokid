@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject>
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="org.eclipse.cdt.core.default.config.1">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="org.eclipse.cdt.core.default.config.1" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="exokid" buildProperties="" description="" id="org.eclipse.cdt.core.default.config.1" name="Default" parent="org.eclipse.cdt.build.core.prefbase.cfg">
+					<folderInfo id="org.eclipse.cdt.core.default.config.1." name="/" resourcePath="">
+						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.1" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="org.eclipse.cdt.build.core.prefbase.toolchain.1" name=""/>
+							<builder autoBuildTarget="&quot;${ProjDirPath}/waf&quot; build" cleanBuildTarget="&quot;${ProjDirPath}/waf&quot; clean" command="python" enableAutoBuild="false" id="org.eclipse.cdt.build.core.settings.default.builder.1" incrementalBuildTarget="&quot;${ProjDirPath}/waf&quot; build" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/local/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/include&quot;"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.275518816" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/local/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/include&quot;"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/gdc/libphobos/libdruntime}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/build/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/exokid/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/local/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/usr/include&quot;"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1210639002" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+				<buildTargets>
+					<target name="configure" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>/usr/bin/python</buildCommand>
+						<buildArguments/>
+						<buildTarget>"/media/sf_danilo/Documents/daniel-dev/exokid/waf" configure</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>true</runAllBuilders>
+					</target>
+					<target name="dist" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>/usr/bin/python</buildCommand>
+						<buildArguments/>
+						<buildTarget>"/media/sf_danilo/Documents/daniel-dev/exokid/waf" dist</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>false</runAllBuilders>
+					</target>
+					<target name="install" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>/usr/bin/python</buildCommand>
+						<buildArguments/>
+						<buildTarget>"/media/sf_danilo/Documents/daniel-dev/exokid/waf" install</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>false</runAllBuilders>
+					</target>
+					<target name="check" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+						<buildCommand>/usr/bin/python</buildCommand>
+						<buildArguments/>
+						<buildTarget>"/media/sf_danilo/Documents/daniel-dev/exokid/waf" check</buildTarget>
+						<stopOnError>true</stopOnError>
+						<useDefaultCommand>false</useDefaultCommand>
+						<runAllBuilders>false</runAllBuilders>
+					</target>
+				</buildTargets>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="exokid.null.1" name="exokid"/>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/exokid"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="org.eclipse.cdt.core.default.config.1">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+</cproject>
