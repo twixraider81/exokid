@@ -94,6 +94,7 @@ def configure(conf):
 	conf.find_program( 'awk', var = 'AWK', mandatory = True )
 	conf.find_program( 'grep', var = 'GREP', mandatory = True )
 	conf.find_program( 'tar', var = 'TAR', mandatory = False )
+	conf.find_program( 'less', var = 'LESS', mandatory = False )
 	conf.find_program( 'gdb', var = 'GDB', mandatory = False )
 	conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
 	conf.find_program( tuple + '-gcc', var='CC', path_list=CCDIR, mandatory = True )
@@ -110,7 +111,7 @@ def configure(conf):
 	# gdc specifics
 	if conf.options.compiler == 'gdc':
 		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow'] )
+		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mcmodel=kernel', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow', '-fno-bounds-check'] )
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
 		# release mode
@@ -184,7 +185,11 @@ def image(self):
 
 class image(Task.Task):
 	shell = True
-	run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'disk.img.xz > ${TGT}; mount -o loop,offset=32256 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; umount tmp; rmdir tmp'
+	if re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] == "CYGWIN":
+		run_str = 'xzcat -f ' + SUPPORTDIR + 'fat32.img.xz > ${TGT}; ' + CCDIR + 'mcopy ' + SUPPORTDIR + 'grub.cfg z:/BOOT/GRUB/GRUB.CFG;  ' + CCDIR + 'mcopy ${SRC} z:/BOOT/KERNEL.BIN'
+	else:
+		run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'ext2.img.xz > ${TGT}; mount -o loop,offset=1048576 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; umount tmp; rmdir tmp'
+
 	ext_out = ['.img']
 	color = 'CYAN'
 	inst_to = None
@@ -256,3 +261,11 @@ def kdbg(ctx):
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
 	subprocess.call( env.KDBG + ' -r :1234  ' + KERNEL, shell=True )
+
+
+# disasm target
+def disasm(ctx):
+	"Dump dissasmbled binary"
+	env = ConfigSet()
+	env.load( ctx.path.make_node( CONF ).abspath() )
+	subprocess.call( env.OBJDUMP + ' -S ' + KERNEL + ' | ' + env.LESS, shell=True )
