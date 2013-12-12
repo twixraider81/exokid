@@ -4,7 +4,7 @@ exokid - an EXOkernel In D
 
 Quickstart
 ----------
-- ./bootstrap.sh -a
+- ./bootstrap.sh
 - ./waf configure
 - ./waf build
 
