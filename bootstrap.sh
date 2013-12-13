@@ -189,7 +189,7 @@ for BUILDARCH in $BUILDARCHS; do
 		#make clean
 		cd "$CROSSDIR/bochs-2.6.2"
 		patch -p1 < ../../../support/bochs.patch
-		./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16 --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
+		./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16=dummy --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
 
 		make
 		make install

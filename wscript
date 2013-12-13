@@ -36,13 +36,11 @@ CONF = 'build/c4che/_cache.py'
 
 # load options
 def options(opt):
-	#opt.load( 'gcc' )
 	opt.load( 'nasm' )
-	#opt.load( 'compiler_c' )
 	opt.load( 'ar' )
 	opt.load( 'gas' )
-	opt.load( 'eclipse' )
-	opt.load( 'objcopy' )
+	#opt.load( 'eclipse' )
+	#opt.load( 'objcopy' )
 	opt.load( 'd' )
 
 	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32)' )
@@ -93,8 +91,6 @@ def configure(conf):
 	conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
 	conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
-	#conf.load( 'gcc' )
-	#conf.load( 'compiler_c' )
 	conf.load( 'objcopy' )
 
 
