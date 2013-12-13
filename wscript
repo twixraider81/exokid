@@ -23,7 +23,7 @@ VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
 CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
-RTDIR = 'gdc/libphobos/libdruntime/'
+RTDIR = 'src/druntime/src/'
 SRCDIR = 'src/'
 SUPPORTDIR = TOP + '/support/'
 IMAGE = TOP + '/build/kernel.img'

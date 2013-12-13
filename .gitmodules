@@ -1,3 +1,3 @@
-[submodule "gdc"]
-	path = gdc
-	url = ssh://git@github.com/twixraider81/GDC.git
+[submodule "src/druntime"]
+	path = src/druntime
+	url = ssh://git@github.com/twixraider81/druntime.git
