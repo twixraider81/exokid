@@ -22,10 +22,13 @@ APPNAME = 'exokid'
 VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
-CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
-RTDIR = 'src/druntime/src/'
-SRCDIR = 'src/'
 SUPPORTDIR = TOP + '/support/'
+CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
+
+SRCDIR = 'src/'
+RTDIR = SRCDIR + 'druntime/src/'
+KERNELDIR = SRCDIR + 'kernel/'
+
 IMAGE = TOP + '/build/kernel.img'
 KERNEL = TOP + '/build/kernel.bin'
 CONF = 'build/c4che/_cache.py'
@@ -57,7 +60,7 @@ def configure(conf):
 		conf.env.append_value( 'ASFLAGS', [ '-felf64', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
 
 		if conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-g','-Fdwarf'] ) # -m amd64 -g dwarf2 for yasm?
+			conf.env.append_value( 'ASFLAGS', ['-g','-Fdwarf'] ) # -m amd64 -g dwarf2 for yasm?
 
 		conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
 	elif conf.options.arch == 'x32' or conf.options.arch == 'i686-pc-elf':
@@ -66,7 +69,7 @@ def configure(conf):
 		conf.env.append_value( 'ASFLAGS', [ '-felf32', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
 
 		if conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-g','-Fdwarf'] )
+			conf.env.append_value( 'ASFLAGS', ['-g','-Fdwarf'] )
 
 		conf.find_program( 'qemu-system-i386', var = 'QEMU', mandatory = False )
 	else:
@@ -100,11 +103,10 @@ def configure(conf):
 		conf.load( 'gdc' )
 	elif conf.options.compiler == 'ldc2' or conf.options.compiler == 'ldc':
 		conf.find_program( 'ldc2', path_list=CCDIR, var='D', mandatory = True )
-		conf.fatal( 'ldc2 and dmd unsupported for now.' )
 		conf.load( 'ldc2' )
+		conf.fatal( 'building with ldc will fail due to nonstandard runtime patches.' )
 	elif conf.options.compiler == 'dmd2' or conf.options.compiler == 'dmd':
-		conf.fatal( 'ldc2 and dmd unsupported for now.' )
-		conf.find_program( 'dmd2', path_list=CCDIR, var='D', mandatory = True )
+		conf.find_program( 'dmd', path_list=CCDIR, var='D', mandatory = True )
 		conf.load( 'dmd' )
 	else:
 		conf.fatal( '--compiler invalid compiler.' )
@@ -131,28 +133,50 @@ def configure(conf):
 		elif conf.options.arch == 'x32':
 			conf.env.append_value( 'DFLAGS', ['-m32'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
+
 	# ldc specifics
 	elif conf.options.compiler == 'ldc2':
 		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-nodefaultlib', '-disable-simplify-drtcalls', '-disable-simplify-libcalls', '-w', '-x86-early-ifcvt', '-float-abi=hard', '-fatal-assembler-warnings', '-enable-asserts'] )
+		conf.env.append_value( 'DFLAGS', ['-dw', '-d-version=BareMetal', '-disable-red-zone', '-disable-simplify-drtcalls', '-disable-simplify-libcalls', '-ignore', '-march=native', '-nodefaultlib', '-w', '-x86-early-ifcvt', '-fatal-assembler-warnings'] )
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
 		# release mode
 		if conf.options.mode == 'release':
-			conf.env.append_value( 'DFLAGS', ['-O2'] )
+			conf.env.append_value( 'DFLAGS', ['-O2', '-release'] )
 		# debug mode
 		elif conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-O0', '-d-debug', '-g'] )
+			conf.env.append_value( 'DFLAGS', ['-O0', '-d-debug', '-g', '-enable-asserts','-asm-verbose'] )
 
 		# x64 specifics
 		if conf.options.arch == 'x64':
-			conf.env.append_value( 'DFLAGS', ['-m64', '-code-model=kernel', '-disable-red-zone'] )
+			conf.env.append_value( 'DFLAGS', ['-m64', '-code-model=kernel'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
 		# x32 specifics
 		elif conf.options.arch == 'x32':
 			conf.env.append_value( 'DFLAGS', ['-m32'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
 
+	# dmd specifics
+	elif conf.options.compiler == 'dmd':
+		# common flags for compiler and linker
+		conf.env.append_value( 'DFLAGS', ['-dw', '-ignore', '-inline', '-noboundscheck', '-version=BareMetal'] )
+		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
+
+		# release mode
+		if conf.options.mode == 'release':
+			conf.env.append_value( 'DFLAGS', ['-O', '-release'] )
+		# debug mode
+		elif conf.options.mode == 'debug':
+			conf.env.append_value( 'DFLAGS', ['-debug', '-g'] )
+
+		# x64 specifics
+		if conf.options.arch == 'x64':
+			conf.env.append_value( 'DFLAGS', ['-m64'] )
+			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
+		# x32 specifics
+		elif conf.options.arch == 'x32':
+			conf.env.append_value( 'DFLAGS', ['-m32'] )
+			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
 
 # custom link, this is awefull...
 class kernel(ccroot.link_task):
@@ -203,16 +227,16 @@ def build(bld):
 	bld.stlib( source = bld.path.ant_glob( RTDIR + '**/*.d'), target='druntime', includes=[RTDIR] )
 
 	# kernel binary
-	sources = bld.path.ant_glob( SRCDIR + '**/*.d')
+	sources = bld.path.ant_glob( KERNELDIR + '**/*.d')
 
 	if bld.env.ARCH == 'x64':
-		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/*.S' )
-		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x64/*.S' )
+		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/*.S' )
+		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/x64/*.S' )
 	elif bld.env.ARCH == 'x32':
-		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/*.S' )
-		sources += bld.path.ant_glob( SRCDIR + 'kernel/arch/x86/x32/*.S' )
+		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/*.S' )
+		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/x32/*.S' )
 
-	bld( features="d asm kernel sym image", target='kernel.bin', use='druntime', source=sources, includes=[RTDIR,SRCDIR] )
+	bld( features="d asm kernel sym image", target='kernel.bin', use='druntime', source=sources, includes=[RTDIR,SRCDIR,KERNELDIR] )
 
 
 # todo target
