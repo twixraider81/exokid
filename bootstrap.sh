@@ -12,48 +12,51 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -x # be verbose about what we're doing for now
+set -u
+set -e
 
 DIR=`pwd`
 PATHO=$PATH
-UNAME=`uname -s | grep -m1 -ioP '([a-z])+' | awk 'NR==1{print $0}'`
+UNAME=`uname -s | grep -m1 -ioP '([a-z])+' | awk 'NR==1{print $0}'` # proper detection of OS
+CROSSDIR="$DIR/cc/$UNAME" # crosstools dir
 
-# crosstools dir
-CROSSDIR="$DIR/cc/$UNAME"
+KEEP=0 # keep stuff or not
+BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf, "x86_64-pc-elf i686-pc-elf aarch64-none-elf"
+BUILDBACKENDS="gdc" # gdc, "gdc ldc dmd"
 
-KEEP=0
-
-# x86_64-pc-elf i686-pc-elf aarch64-none-elf
-BUILDARCHS="x86_64-pc-elf" 
-
-while getopts "a:ck" opt; do
+while getopts "a:ckb:v" opt; do
 	case "$opt" in
-		a)
+		a) # select architectures to build
 			BUILDARCHS=${OPTARG,,}
 		;;
-		k)
+		k) # keep downloaded archives
 			KEEP=1
 		;;
-		c)
-			# clean build tools dir
+		c) # clean build tools dir
 			rm -rf $CROSSDIR/binutils-*
 			rm -rf $CROSSDIR/gcc-*
 			rm -rf $CROSSDIR/gdc
 			rm -rf $CROSSDIR/ldc
 			rm -rf $CROSSDIR/bochs-*
 			rm -rf $CROSSDIR/mtools-*
+			rm -rf $CROSSDIR/dmd
 			exit 0
+		;;
+		b) # compiler backend to build
+			BUILDBACKENDS=${OPTARG,,}
+		;;
+		v) # set verbosity
+			set -x
 		;;
 	esac
 done
-
 
 # simple checks
 TOOLS="curl git bison flex make gcc texindex gdb nasm tar xzcat python patch"
 for TOOL in $TOOLS; do
 	if ! which "$TOOL"; then
 		echo "$TOOL not found; exiting"
-		exit -1;
+		exit 0;
 	fi
 done
 
@@ -69,6 +72,7 @@ for BUILDARCH in $BUILDARCHS; do
 	GCC="$CROSSDIR/bin/$BUILDARCH-gcc"
 	LDC="$CROSSDIR/bin/ldc2"
 	BOCHS="$CROSSDIR/bin/bochs"
+	DMD="$CROSSDIR/bin/dmd"
 
 	if [ ! -f "$LD" ]; then
 		BINSRCDIR="$CROSSDIR/binutils-2.24"
@@ -93,7 +97,7 @@ for BUILDARCH in $BUILDARCHS; do
 		make install
 	fi
 
-	if [ ! -f "$GCC" ]; then
+	if [[ ! -f "$GCC" && $BUILDBACKENDS =~ "gdc" ]]; then
 		GCCSRCDIR="$CROSSDIR/gcc-4.8.2"
 		GCCARCHIVE="$CROSSDIR/gcc-4.8.2.tar.bz2"
 		GCCBUILD="$CROSSDIR/gcc-4.8.2-$BUILDARCH"
@@ -161,7 +165,7 @@ for BUILDARCH in $BUILDARCHS; do
 	fi
 
 
-	if [[ ! -f "$LDC" && "$UNAME" != "CYGWIN" ]]; then
+	if [[ ! -f "$LDC" && $BUILDBACKENDS =~ "ldc" && "$UNAME" != "CYGWIN" ]]; then
 		LDCBUILD="$CROSSDIR/ldc/build-$BUILDARCH"
 
 		cd "$CROSSDIR"
@@ -177,6 +181,18 @@ for BUILDARCH in $BUILDARCHS; do
 		cmake .. -DCMAKE_INSTALL_PREFIX="$CROSSDIR" -DINCLUDE_INSTALL_DIR="$CROSSDIR/include"
 		make
 		make install
+	fi
+
+
+	if [[ ! -f "$DMD" && $BUILDBACKENDS =~ "dmd" && "$UNAME" != "CYGWIN" ]]; then
+		cd "$CROSSDIR"
+		test -d "$CROSSDIR/dmd" || git clone --recursive https://github.com/D-Programming-Language/dmd.git
+
+		#make clean 
+		cd "$CROSSDIR/dmd"
+		make -f posix.mak MODEL=64 TARGET_CPU=X86
+		cp src/dmd "$CROSSDIR/bin/dmd"
+		cp src/dmd.conf.default "$CROSSDIR/bin/dmd.conf"
 	fi
 
 
@@ -224,6 +240,7 @@ if [ $KEEP -eq 0 ]; then
 	rm -rf $CROSSDIR/ldc
 	rm -rf $CROSSDIR/bochs-*
 	rm -rf $CROSSDIR/mtools-*
+	rm -rf $CROSSDIR/dmd
 fi
 
 

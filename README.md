@@ -9,7 +9,7 @@ Quickstart
 - ./waf build
 
 Look at ./waf --help for further commands, like
-todo, backup, bochs, qemu, gdb, kdbg, eclipse
+todo, backup, bochs, qemu, gdb, kdbg, disasm
 
 
 Building
@@ -20,9 +20,11 @@ necessary tools and compile a cross compiler toolchain.
 
 - ./bootstrap.sh -a x86_64-pc-elf
 - ./bootstrap.sh -c
-- -a : cross compiler architecture to build, space sperated, i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
+- -a : cross compiler architecture to build, defaults to x86_64-pc-elf. i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
 - -c : force cleanup (delete downloaded folders)
-- -k : keep downloaded / configured tools
+- -k : keep downloaded archives
+- -b : choose which backends to build, defaults to gdc. i.e. (gdc | "gdc ldc dmd")
+- -v : verbose, print what the script is doing
 
 This will take a serious amount of time (and disk space), please be patient.
 The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).
@@ -53,7 +55,7 @@ Credits & thanks
  - Digital Mars and everything D - http://dlang.org/ & https://github.com/D-Programming-Language
  - The GDC creators - https://github.com/D-Programming-GDC/GDC/
  - The LDC creators - https://github.com/ldc-developers/ldc/
- - XOmB Exokernel - https://www.xomb.org/
+ - XOmB Exokernel - http://www.xomb.org/
  - Arc Kernel - https://github.com/grahamedgecombe/arc/
  - GNU - https://www.gnu.org/
  - Linux - https://www.kernel.org/
