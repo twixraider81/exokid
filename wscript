@@ -104,10 +104,11 @@ def configure(conf):
 	elif conf.options.compiler == 'ldc2' or conf.options.compiler == 'ldc':
 		conf.find_program( 'ldc2', path_list=CCDIR, var='D', mandatory = True )
 		conf.load( 'ldc2' )
-		conf.fatal( 'building with ldc will fail due to nonstandard runtime patches.' )
+		cconf.fatal( '--compiler, only gdc supported for now.' )
 	elif conf.options.compiler == 'dmd2' or conf.options.compiler == 'dmd':
 		conf.find_program( 'dmd', path_list=CCDIR, var='D', mandatory = True )
 		conf.load( 'dmd' )
+		conf.fatal( '--compiler, only gdc supported for now.' )
 	else:
 		conf.fatal( '--compiler invalid compiler.' )
 
