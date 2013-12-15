@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.io.serial;
 
@@ -50,27 +50,27 @@ class Serial : Common
 	/**
 	 Initialize
 	 */
-	public static bool Initialize( ubyte addr, int baud = 9600 )
+	public static bool Initialize( uint8_t addr, int32_t baud = 9600 )
 	{
-		ushort port = BDA.Peek!(ushort)( addr );
+		uint16_t port = BDA.Peek!(uint16_t)( addr );
 		if( !port ) return false;
 
 		/* Interrupts deaktivieren */
-		Port.Poke!(ubyte)( cast(ushort)(port + IER), 0x0 );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + IER), 0x0 );
 
 		// DLAB-Bit setzen
-		Port.Poke!(ubyte)( cast(ushort)(port + LCR), DLAB );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + LCR), DLAB );
 
-		ushort divisor = cast(ushort)(FREQ / baud);
-		Port.Poke!(ubyte)( cast(ushort)(port + RXTX), divisor);
-		Port.Poke!(ubyte)( cast(ushort)(port + IER), divisor >> 8);
+		uint16_t divisor = cast(uint16_t)(FREQ / baud);
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + RXTX), divisor);
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + IER), divisor >> 8);
 
 		// 8 Bitformat setzen
-		Port.Poke!(ubyte)( cast(ushort)(port + LCR), BIT8 );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + LCR), BIT8 );
 
 		// Initialisierung abschliessen
-		Port.Poke!(ubyte)( cast(ushort)(port + FCR), 0xC7 );
-		Port.Poke!(ubyte)( cast(ushort)(port + MCR), 0x0B );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + FCR), 0xC7 );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port + MCR), 0x0B );
 
 		return true;
 	}
@@ -78,9 +78,9 @@ class Serial : Common
 	/**
 	 Check if we can read from the bus
 	 */
-	private static ubyte isPeekReady( ushort port )
+	private static uint8_t isPeekReady( uint16_t port )
 	{
-		return ( Port.Peek!(ubyte)( cast(ushort)(port + LSR) ) & 1 );
+		return ( Port.Peek!(uint8_t)( cast(uint16_t)(port + LSR) ) & 1 );
 	}
 
 
@@ -88,9 +88,9 @@ class Serial : Common
 	 Read from the bus
 	 //FIXME: it blocks
 	 */
-	public static T Peek(T)( ubyte addr )
+	public static T Peek(T)( uint8_t addr )
 	{
-		ushort port = BDA.Peek!(ushort)( addr );
+		uint16_t port = BDA.Peek!(uint16_t)( addr );
 		if( !port ) return;
 
 		while( !isPeekReady( port ) ) {
@@ -102,23 +102,23 @@ class Serial : Common
 	/**
 	 Check if we can write to the bus
 	 */
-	private static ubyte isPokeReady( ushort port )
+	private static uint8_t isPokeReady( uint16_t port )
 	{
-		return ( Port.Peek!(ubyte)( cast(ushort)(port + LSR) ) & TXRD );
+		return ( Port.Peek!(uint8_t)( cast(uint16_t)(port + LSR) ) & TXRD );
 	}
 
 	/**
 	 Write to the bus
 	 //FIXME: it blocks
 	 */
-	public static void Poke(T)( ubyte addr, intptr_t data )
+	public static void Poke(T)( uint8_t addr, intptr_t data )
 	{
-		ushort port = BDA.Peek!(ushort)( addr );
+		uint16_t port = BDA.Peek!(uint16_t)( addr );
 		if( !port ) return;
 
 		while( !isPokeReady( port ) ) {
 		}
 
-		Port.Poke!(ubyte)( cast(ushort)(port), data );
+		Port.Poke!(uint8_t)( cast(uint16_t)(port), data );
 	}
 }

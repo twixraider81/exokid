@@ -1,21 +1,23 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.arch.x86.bda;
 
 import kernel.io.common;
 import kernel.mem.phys;
+
+import core.stdc.stdint;
 
 /**
  Access Bios Data Area
@@ -26,7 +28,7 @@ class BDA : Common
 	/**
 	 Common data ports
 	 */
-	public enum Port : ubyte
+	public enum Port : uint8_t
 	{
 		COM1	= 0x00,
 		COM2	= 0x02,
@@ -39,7 +41,7 @@ class BDA : Common
 		BOCHS	= 0xE9
 	}
 
-	public static T Peek(T)( ushort offset )
+	public static T Peek(T)( uint16_t offset )
 	{
 		return *(cast(T*)( Phys.physToVirtual( 0x400 + offset ) ) );
 	}

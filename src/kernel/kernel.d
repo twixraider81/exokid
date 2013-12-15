@@ -28,7 +28,7 @@ class Kernel
 	/**
 	 Initialisiert den Kernel via Multiboot2.
 	 */
-	public static void Initialize( uintptr_t multibootMagic, void* multibootInfo )
+	public static void Initialize( uint32_t multibootMagic, uintptr_t* multibootInfo )
 	{
 		Trace.Initialize( Trace.Device.VGA | Trace.Device.E9 | Trace.Device.UART );
 		Config.Initialize( multibootMagic, multibootInfo );

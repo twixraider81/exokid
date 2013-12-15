@@ -2,13 +2,14 @@
  * http://pubs.opengroup.org/onlinepubs/007908775/xsh/string.h.html
  */
 import core.stdc.string;
+import core.stdc.stdint;
 
 extern(C)
 {
 	void* memcpy(void* dest, void* src, size_t count) pure nothrow
 	{
-		ubyte* d = cast(ubyte*)dest;
-		ubyte* s = cast(ubyte*)src;
+		uint8_t* d = cast(uint8_t*)dest;
+		uint8_t* s = cast(uint8_t*)src;
 
 		for(size_t i = count; count; count--, d++, s++)
 			*d = *s;
@@ -18,8 +19,8 @@ extern(C)
 
 	void* memmove(void* dest, void* src, size_t count) pure nothrow
 	{
-		ubyte* d = cast(ubyte*)dest;
-		ubyte* s = cast(ubyte*)src;
+		uint8_t* d = cast(uint8_t*)dest;
+		uint8_t* s = cast(uint8_t*)src;
 
 		for(size_t i = count; count; count--, d++, s++)
 		  *d = *s;
@@ -29,8 +30,8 @@ extern(C)
 
 	long memcmp(void* a, void* b, size_t n) pure nothrow
 	{
-		ubyte* str_a = cast(ubyte*)a;
-		ubyte* str_b = cast(ubyte*)b;
+		uint8_t* str_a = cast(uint8_t*)a;
+		uint8_t* str_b = cast(uint8_t*)b;
 
 		for(size_t i = 0; i < n; i++)
 		{
@@ -44,16 +45,16 @@ extern(C)
 		return 0;
 	}
 
-	void memset(void* addr, ubyte val, uint numBytes) pure nothrow
+	void memset(void* addr, uint8_t val, uint32_t numBytes) pure nothrow
 	{
-		 ubyte* data = cast(ubyte*) addr;
+		 uint8_t* data = cast(uint8_t*) addr;
 
-		 for(int i = 0; i < numBytes; i++){
+		 for(int32_t i = 0; i < numBytes; i++){
 			  data[i] = val;
 		 }
 	}
 
-    void* memchr( void * ptr, int value, size_t num)
+    void* memchr( void * ptr, int32_t value, size_t num)
 	{
 		return (cast(void*)0);
 	}

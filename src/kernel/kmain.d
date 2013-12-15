@@ -19,7 +19,7 @@ import kernel.kernel;
  C Hook to initialize the kernel
  */
 extern(C) {
-	void kmain( uintptr_t multibootMagic, void* multibootInfo )
+	void kmain( uint32_t multibootMagic, uintptr_t* multibootInfo )
 	{
 		Kernel.Initialize( multibootMagic, multibootInfo );
 	}

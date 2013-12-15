@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.boot.multiboot2;
 
@@ -66,7 +66,7 @@ class Multiboot2
 	/**
 	 Possible tag type
 	 */
-	public enum tagType : ubyte
+	public enum tagType : uint8_t
 	{
 		TERMINATOR	= 0,
 		CMDLINE		= 1,
@@ -90,7 +90,7 @@ class Multiboot2
 	/**
 	 Possible framebuffer types
 	 */
-	public enum framebufferType : ubyte
+	public enum framebufferType : uint8_t
 	{
 		INDEXED	= 0,
 		RGB		= 1,
@@ -100,7 +100,7 @@ class Multiboot2
 	/**
 	 Possible memory region types
 	 */
-	public enum memoryType : ubyte
+	public enum memoryType : uint8_t
 	{
 		AVAILABLE		= 1,
 		RESERVED		= 2,
@@ -120,18 +120,18 @@ class Multiboot2
 		/**
 		 Size including tags
 		 */
-		public uint totalSize;
+		public uint32_t totalSize;
 
 		/**
 		 reserved!?
 		 */
-		public uint reserved;
+		public uint32_t reserved;
 	}
 
 	/**
 	 Initialize multiboot2 reader
 	 */
-	public static bool Initialize( void* infoAddr )
+	public static bool Initialize( uintptr_t* infoAddr )
 	{
 		info = cast(Info*)infoAddr;		
 		return true;
@@ -140,7 +140,7 @@ class Multiboot2
 	/**
 	 Reads a tag
 	 */
-	private static T getTag( T )( uint tType )
+	private static T getTag( T )( uint32_t tType )
 	{
 		uintptr_t tagAddr = cast(uintptr_t)info + Info.totalSize.sizeof + Info.reserved.sizeof;
 		uintptr_t tagLimit = tagAddr + info.totalSize;
@@ -259,12 +259,12 @@ struct Tag
 	/**
 	 Tag types
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 };
 
 /**
@@ -275,12 +275,12 @@ struct TagString
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 
 	/**
 	String pointer
@@ -296,44 +296,44 @@ struct TagFramebuffer
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 
 	/**
 	 Physicak address
 	 */
-	public ulong fbAddr;
+	public uintptr_t fbAddr;
 
 	/**
 	 Pitch?
 	 */
-	public uint fbPitch;
+	public uint32_t fbPitch;
 
 	/**
 	 Width, supposedly 80 chars
 	 */
-	public uint fbWidth;
+	public uint32_t fbWidth;
 
 	/**
 	 Height, supposedly 25 chars
 	 */
-	public uint fbHeight;
+	public uint32_t fbHeight;
 
 	/**
 	 Bits per pixel, supposedly 16
 	 */
-	public ubyte fbBpp;
+	public uint8_t fbBpp;
 
 	/**
 	Framebuffer typ
 	 */
-	public ubyte fbType;
+	public uint8_t fbType;
 
-	public ushort reserved;
+	public uint16_t reserved;
 };
 
 /**
@@ -344,16 +344,16 @@ struct TagBootDevice
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 	
-	public uint device;
-	public uint slice;
-	public uint part;
+	public uint32_t device;
+	public uint32_t slice;
+	public uint32_t part;
 };
 
 /**
@@ -364,22 +364,22 @@ struct TagAPM
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 
-	public ushort apmVersion;
-	public ushort cSegment;
-	public uint offset;
-	public ushort cSegment16;
-	public ushort dSegment;
-	public ushort apmFlags;
-	public ushort cSegmentLength;
-	public ushort cSegment16Length;
-	public ushort dSegmentLength;
+	public uint16_t apmVersion;
+	public uint16_t cSegment;
+	public uint32_t offset;
+	public uint16_t cSegment16;
+	public uint16_t dSegment;
+	public uint16_t apmFlags;
+	public uint16_t cSegmentLength;
+	public uint16_t cSegment16Length;
+	public uint16_t dSegmentLength;
 };
 
 
@@ -391,15 +391,15 @@ struct TagMemoryInfo
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 
-	public uint memoryLower;
-	public uint memoryUpper;
+	public uint32_t memoryLower;
+	public uint32_t memoryUpper;
 }
 
 /**
@@ -411,23 +411,23 @@ struct TagMemoryMap
 	/**
 	 Tag type
 	 */
-	public uint tagType;
+	public uint32_t tagType;
 
 	/**
 	 Tag size
 	 */
-	public uint tagSize;
+	public uint32_t tagSize;
 
-	public uint entrySize;
-	public uint entryVersion;
+	public uint32_t entrySize;
+	public uint32_t entryVersion;
 
 	public struct Entry
 	{
 		align(1):
-		ulong baseAddress;
-		ulong length;
-		uint memoryType;
-		uint zero;
+		uint64_t baseAddress;
+		uint64_t length;
+		uint32_t memoryType;
+		uint32_t zero;
 	}
 	public Entry entries[0];
 };

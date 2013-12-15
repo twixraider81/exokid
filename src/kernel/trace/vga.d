@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.trace.vga;
 import kernel.trace.device;
@@ -28,7 +28,7 @@ class VGA : Device
 	/**
 	 Common colours
 	 */
-	public enum Color : ubyte
+	public enum Color : uint8_t
 	{
 		BLACK		= 0x00,
 		BLUE		= 0x01,
@@ -86,16 +86,16 @@ class VGA : Device
 	/**
 	 Current X Position
 	 */
-	private __gshared uint _xPos = 0;
+	private __gshared uint32_t _xPos = 0;
 
 	@property
 	{
-		public static uint X()
+		public static uint32_t X()
 		{
 			return _xPos;
 		}
 
-		public static uint X( uint x )
+		public static uint32_t X( uint32_t x )
 		{
 			if( x >= Config.consoleColumns ) x = Config.consoleColumns - 1;
 			return _xPos = x;
@@ -105,16 +105,16 @@ class VGA : Device
 	/**
 	 Current Y Position
 	 */
-	private __gshared uint _yPos = 0;
+	private __gshared uint32_t _yPos = 0;
 
 	@property
 	{
-		public static uint Y()
+		public static uint32_t Y()
 		{
 			return _yPos;
 		}
 
-		public static uint Y( uint y )
+		public static uint32_t Y( uint32_t y )
 		{
 			if( y >= Config.consoleRows ) y = Config.consoleRows - 1;
 			return _yPos = y;
@@ -124,21 +124,21 @@ class VGA : Device
 	/**
 	 Colour attribute, combines foregroundColor and backgroundColor
 	 */
-	private __gshared ubyte _colorAttribute;
+	private __gshared uint8_t _colorAttribute;
 
 	/**
 	 Foreground colo(u)r
 	 */
-	private __gshared ubyte _foregroundColor;
+	private __gshared uint8_t _foregroundColor;
 
 	@property
 	{
-		public static ubyte foregroundColor()
+		public static uint8_t foregroundColor()
 		{
 			return _foregroundColor;
 		}
 
-		public static ubyte foregroundColor( ubyte color )
+		public static uint8_t foregroundColor( uint8_t color )
 		{
 			_colorAttribute = (_colorAttribute & 0xf0) | color;
 			return _foregroundColor = color;
@@ -148,18 +148,18 @@ class VGA : Device
 	/**
 	 Background colo(u)r
 	 */
-	private __gshared ubyte _backgroundColor;
+	private __gshared uint8_t _backgroundColor;
 
 	@property
 	{
-		public static ubyte backgroundColor()
+		public static uint8_t backgroundColor()
 		{
 			return _backgroundColor;
 		}
 
-		public static ubyte backgroundColor( ubyte color )
+		public static uint8_t backgroundColor( uint8_t color )
 		{
-			_colorAttribute = cast(ubyte)((_colorAttribute & 0x0f) | (color << 4));
+			_colorAttribute = cast(uint8_t)((_colorAttribute & 0x0f) | (color << 4));
 			return _backgroundColor = color;
 		}
 	}
@@ -169,7 +169,7 @@ class VGA : Device
 	 */
 	static public void Reset()
 	{
-		for( uint i = 0; i < Config.consoleColumns * Config.consoleRows * 2; i++ ) {
+		for( uint32_t i = 0; i < Config.consoleColumns * Config.consoleRows * 2; i++ ) {
 			*( Phys.frameBuffer + i ) = 0;
 		}
 	}
@@ -177,19 +177,19 @@ class VGA : Device
 	/**
 	 Scroll lines
 	 */
-	static public void scrollLines( uint numLines )
+	static public void scrollLines( uint32_t numLines )
 	{
 		if( numLines >= Config.consoleRows ) {
 			Reset();
 			return;
 		}
 
-		uint cury = 0;
-		uint offset1 = 0;
-		uint offset2 = numLines * Config.consoleColumns;
+		uint32_t cury = 0;
+		uint32_t offset1 = 0;
+		uint32_t offset2 = numLines * Config.consoleColumns;
 
 		for( ; cury <= Config.consoleRows - numLines; cury++ ) {
-			for( uint curx = 0; curx < Config.consoleColumns; curx++ ) {
+			for( uint32_t curx = 0; curx < Config.consoleColumns; curx++ ) {
 				*(Phys.frameBuffer + (curx + offset1) * 2) = *(Phys.frameBuffer + (curx + offset1 + offset2) * 2);
 				*(Phys.frameBuffer + (curx + offset1) * 2 + 1) = *(Phys.frameBuffer + (curx + offset1 + offset2) * 2 + 1);
 			}
@@ -198,7 +198,7 @@ class VGA : Device
 		}
 
 		for( ; cury <= Config.consoleRows; cury++ ) {
-			for( uint curx = 0; curx < Config.consoleColumns; curx++ ) {
+			for( uint32_t curx = 0; curx < Config.consoleColumns; curx++ ) {
 				*(Phys.frameBuffer + (curx + offset1) * 2) = 0x00;
 				*(Phys.frameBuffer + (curx + offset1) * 2 + 1) = 0x00;
 			}

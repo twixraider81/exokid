@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.arch.x86.port;
 
@@ -41,15 +41,15 @@ class Port : Common
 	/**
 	 Read
 	 */
-	public static T Peek(T)( ushort port, bool iowait = false )
+	public static T Peek(T)( uint16_t port, bool iowait = false )
 	{
 		T retval;
 
 		version( GNU )
 		{
-			static if( is(T == ubyte) || is(T == byte) ) {
+			static if( is(T == uint8_t) || is(T == byte) ) {
 				asm{ "in %%dx,%%al;" : "=a" retval : "d" port; }
-			} else static if( is(T == ushort) || is(T == short) ) {
+			} else static if( is(T == uint16_t) || is(T == short) ) {
 				asm{ "in %%dx,%%ax;" : "=a" retval : "d" port; }
 			} else static if( is(T == uint) || is(T == int) ) {
 				asm{ "in %%dx,%%eax;" : "=a" retval : "d" port; }
@@ -65,9 +65,9 @@ class Port : Common
 		{
 			asm { mov EDX, port; }
 
-			static if( is(T == ubyte) || is(T == byte) ) {
+			static if( is(T == uint8_t) || is(T == byte) ) {
 				asm{ in AL, DX; }
-			} else static if( is(T == ushort) || is(T == short) ) {
+			} else static if( is(T == uint16_t) || is(T == short) ) {
 				asm{ in AX, DX; }
 			} else static if( is(T == uint) || is(T == int) ) {
 				asm{ in EAX, DX; }
@@ -88,13 +88,13 @@ class Port : Common
 	/**
 	 Write
 	 */
-	public static void Poke(T)( ushort port, intptr_t data, bool iowait = false )
+	public static void Poke(T)( uint16_t port, intptr_t data, bool iowait = false )
 	{
 		version( GNU )
 		{
-			static if( is(T == ubyte) || is(T == byte) ) {
+			static if( is(T == uint8_t) || is(T == byte) ) {
 				asm{ "outb %%al, %1" : : "a"(data), "Nd"(port); }
-			} else static if( is(T == ushort) || is(T == short) ) {
+			} else static if( is(T == uint16_t) || is(T == short) ) {
 				asm{ "outw %%ax, %1" : : "a"(data), "Nd"(port); }
 			} else static if( is(T == uint) || is(T == int) ) {
 				asm{ "outl %%eax, %1" : : "a"(data), "Nd"(port); }
@@ -110,9 +110,9 @@ class Port : Common
 		{
 			asm { mov EAX, data; mov EDX, port;	}
 
-			static if( is(T == ubyte) || is(T == byte) ) {
+			static if( is(T == uint8_t) || is(T == byte) ) {
 				asm{ out DX, AL; }
-			} else static if( is(T == ushort) || is(T == short) ) {
+			} else static if( is(T == uint16_t) || is(T == short) ) {
 				asm{ out DX, AX; }
 			} else static if( is(T == uint) || is(T == int) ) {
 				asm{ out DX, EAX; }

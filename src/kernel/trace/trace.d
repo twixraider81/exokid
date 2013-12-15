@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.trace.trace;
 
@@ -29,7 +29,7 @@ class Trace
 	/**
 	 Selected output device
 	 */
-	private __gshared int outputDevice;
+	private __gshared int32_t outputDevice;
 
 	/**
 	Available output devices
@@ -44,7 +44,7 @@ class Trace
 	/**
 	 Initialize tracing devices
 	 */
-	public static void Initialize( int mode = Device.E9 | Device.VGA | Device.UART )
+	public static void Initialize( int32_t mode = Device.E9 | Device.VGA | Device.UART )
 	{
 		outputDevice = 0;
 
@@ -108,7 +108,7 @@ class Trace
 	{
 		char token;
 
-		for( int i = 0; i < s.length; i++ ) {
+		for( int32_t i = 0; i < s.length; i++ ) {
 			token = s[i];
 
 			if( token != '%' ) {
@@ -147,13 +147,13 @@ class Trace
 		uintptr_t startIdx = 0;
 		uintptr_t ud = d;
 		bool negative = false;
-		int divisor = 10;
+		int32_t divisor = 10;
 
 		if( base == 'x' ) divisor = 16;
 		else if( base == 'b' ) divisor = 2;
 
 		do {
-			int remainder = cast(int)(ud % divisor);
+			int32_t remainder = cast(int)(ud % divisor);
 			buf[p--] = cast(char)((remainder < 10) ? remainder + '0' : remainder + 'a' - 10);
 		}
 		while( ud /= divisor );

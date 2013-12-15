@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.arch.x86.pic;
 
@@ -30,7 +30,7 @@ class Pic
 	/**
 	 PIC Ports
 	 */
-	public enum Ports : ubyte
+	public enum Ports : uint8_t
 	{
 		MASTERCMD	= 0x20,
 		MASTERDATA	= 0x21,
@@ -41,7 +41,7 @@ class Pic
 	/**
 	 ICW1 Payloads
 	 */
-	public enum ICW1 : ubyte
+	public enum ICW1 : uint8_t
 	{
 		ICW4	= 0x01,
 		SINGLE	= 0x02,
@@ -53,7 +53,7 @@ class Pic
 	/**
 	 OCW3 Payloads
 	 */
-	public enum OCW3 : ubyte
+	public enum OCW3 : uint8_t
 	{
 		IRR		= 0x0a,
 		ISR		= 0x0b
@@ -62,7 +62,7 @@ class Pic
 	/**
 	 ICW4 Payloads
 	 */
-	public enum ICW4 : ubyte
+	public enum ICW4 : uint8_t
 	{
 		I8086	= 0x01,
 		AUTO	= 0x02,
@@ -79,32 +79,32 @@ class Pic
 		Trace.print( " * PIC: " );
 
 		if( useApic ) { // apic wird benutzt pic deaktivieren
-			Port.Poke!(ubyte)( Ports.SLAVECMD, 0xff );
-			Port.Poke!(ubyte)( Ports.MASTERCMD, 0xff );
+			Port.Poke!(uint8_t)( Ports.SLAVECMD, 0xff );
+			Port.Poke!(uint8_t)( Ports.MASTERCMD, 0xff );
 
 			Trace.print( "disabled.\n" );
 
 			return;
 		}
 
-		ubyte pic1, pic2;
+		uint8_t pic1, pic2;
 
-		pic1 = Port.Peek!(ubyte)( Ports.MASTERDATA );
-		pic1 = Port.Peek!(ubyte)( Ports.SLAVEDATA );
+		pic1 = Port.Peek!(uint8_t)( Ports.MASTERDATA );
+		pic1 = Port.Peek!(uint8_t)( Ports.SLAVEDATA );
 
-		Port.Poke!(ubyte)( Ports.MASTERCMD, ICW1.INIT + ICW1.ICW4, true );
-		Port.Poke!(ubyte)( Ports.SLAVECMD, ICW1.INIT + ICW1.ICW4, true );
+		Port.Poke!(uint8_t)( Ports.MASTERCMD, ICW1.INIT + ICW1.ICW4, true );
+		Port.Poke!(uint8_t)( Ports.SLAVECMD, ICW1.INIT + ICW1.ICW4, true );
 
-		Port.Poke!(ubyte)( Ports.MASTERDATA, 0x00, true );
-		Port.Poke!(ubyte)( Ports.SLAVEDATA, 0x08, true );
-  		Port.Poke!(ubyte)( Ports.MASTERDATA, 0x04, true );
-  		Port.Poke!(ubyte)( Ports.SLAVEDATA, 0x02, true );
+		Port.Poke!(uint8_t)( Ports.MASTERDATA, 0x00, true );
+		Port.Poke!(uint8_t)( Ports.SLAVEDATA, 0x08, true );
+  		Port.Poke!(uint8_t)( Ports.MASTERDATA, 0x04, true );
+  		Port.Poke!(uint8_t)( Ports.SLAVEDATA, 0x02, true );
  
-   		Port.Poke!(ubyte)( Ports.MASTERDATA, ICW4.I8086, true );
-  		Port.Poke!(ubyte)( Ports.SLAVEDATA, ICW4.I8086, true );
+   		Port.Poke!(uint8_t)( Ports.MASTERDATA, ICW4.I8086, true );
+  		Port.Poke!(uint8_t)( Ports.SLAVEDATA, ICW4.I8086, true );
 
-  		Port.Poke!(ubyte)( Ports.MASTERDATA, pic1, true );
-  		Port.Poke!(ubyte)( Ports.SLAVEDATA, pic2, true );
+  		Port.Poke!(uint8_t)( Ports.MASTERDATA, pic1, true );
+  		Port.Poke!(uint8_t)( Ports.SLAVEDATA, pic2, true );
   
   		Trace.print( "initialized.\n" );
 	}
@@ -112,29 +112,29 @@ class Pic
 	/**
 	 Signalise end of interrupt
 	 */
-	public static void endOfInterrupt( ushort irq )
+	public static void endOfInterrupt( uint16_t irq )
 	{
-		if( irq >= 8) Port.Poke!(ubyte)( Ports.SLAVECMD, 0x20 );
-		Port.Poke!(ubyte)( Ports.MASTERCMD, 0x20 );
+		if( irq >= 8) Port.Poke!(uint8_t)( Ports.SLAVECMD, 0x20 );
+		Port.Poke!(uint8_t)( Ports.MASTERCMD, 0x20 );
 	}
 
 	/**
 	 Read IRR state
 	 */
-	public static ushort getIrr()
+	public static uint16_t getIrr()
 	{
-  		Port.Poke!(ubyte)( Ports.MASTERCMD, OCW3.IRR );
-  		Port.Poke!(ubyte)( Ports.SLAVECMD, OCW3.IRR );
-  		return ( ( Port.Peek!(ubyte)( Ports.SLAVECMD ) << 8) | Port.Peek!(ubyte)( Ports.MASTERCMD ) );
+  		Port.Poke!(uint8_t)( Ports.MASTERCMD, OCW3.IRR );
+  		Port.Poke!(uint8_t)( Ports.SLAVECMD, OCW3.IRR );
+  		return ( ( Port.Peek!(uint8_t)( Ports.SLAVECMD ) << 8) | Port.Peek!(uint8_t)( Ports.MASTERCMD ) );
 	}
 
 	/**
 	 Read den ISR state
 	 */
-	public static ushort getIsr()
+	public static uint16_t getIsr()
 	{
-  		Port.Poke!(ubyte)( Ports.MASTERCMD, OCW3.ISR );
-  		Port.Poke!(ubyte)( Ports.SLAVECMD, OCW3.ISR );
-  		return ( ( Port.Peek!(ubyte)( Ports.SLAVECMD ) << 8) | Port.Peek!(ubyte)( Ports.MASTERCMD ) );
+  		Port.Poke!(uint8_t)( Ports.MASTERCMD, OCW3.ISR );
+  		Port.Poke!(uint8_t)( Ports.SLAVECMD, OCW3.ISR );
+  		return ( ( Port.Peek!(uint8_t)( Ports.SLAVECMD ) << 8) | Port.Peek!(uint8_t)( Ports.MASTERCMD ) );
 	}
 }

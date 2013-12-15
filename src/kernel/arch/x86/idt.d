@@ -1,16 +1,16 @@
- /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+/**
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.arch.x86.idt;
 
@@ -26,7 +26,7 @@ alias void function(CpuState*) IdtHandler;
 /**
  Mixins to generate assembler hooks
  */
-template generateIsrExceptions( uint n, int i = 0 ) 
+template generateIsrExceptions( uint32_t n, int32_t i = 0 ) 
 {
 	static if( i > n ) 
 		const char[] generateIsrExceptions = ``;
@@ -34,7 +34,7 @@ template generateIsrExceptions( uint n, int i = 0 )
 		const char[] generateIsrExceptions = `void isrException` ~ i.stringof ~ `(); ` ~ generateIsrExceptions!( n, i + 1 );
 }
 
-template generateIsrIrqs( uint n, int i = 0 ) 
+template generateIsrIrqs( uint32_t n, int32_t i = 0 ) 
 {
 	static if( i > n ) 
 		const char[] generateIsrIrqs = ``;
@@ -42,7 +42,7 @@ template generateIsrIrqs( uint n, int i = 0 )
 		const char[] generateIsrIrqs = `void isrIrq` ~ i.stringof ~ `(); ` ~ generateIsrIrqs!( n, i + 1 );
 }
 
-template generateExceptionGates( uint n, int i = 0 ) 
+template generateExceptionGates( uint32_t n, int32_t i = 0 ) 
 {
 	static if( i > n ) 
 		const char[] generateExceptionGates = ``;
@@ -50,7 +50,7 @@ template generateExceptionGates( uint n, int i = 0 )
 		const char[] generateExceptionGates = `setGate( table[` ~ i.stringof ~ `], &isrException` ~ i.stringof ~ `, Flags.PRESENT | Flags.INTERRUPT ); ` ~ generateExceptionGates!( n, i + 1 );
 }
 
-template generateIrqGates( uint n, int i = 0 ) 
+template generateIrqGates( uint32_t n, int32_t i = 0 ) 
 {
 	static if( i > n ) 
 		const char[] generateIrqGates = ``;
@@ -110,13 +110,13 @@ class Idt
 	struct Entry
 	{
 		align (1):
-		ushort addrLow;
-		ushort csSel;
-		ubyte ist;
-		ubyte flags;
-		ushort addrMid;
-		uint addrHigh;
-		uint reserved2;
+		uint16_t addrLow;
+		uint16_t csSel;
+		uint8_t ist;
+		uint8_t flags;
+		uint16_t addrMid;
+		uint32_t addrHigh;
+		uint32_t reserved2;
 	}
 
 	/**
@@ -132,7 +132,7 @@ class Idt
 	/**
 	 Exception names
 	 */
-	public const static string[32] faultNames = [ "Divide by Zero Error", "Debug", "Non Maskable Interrupt", "Breakpoint", "Overflow", "Bound Range", "Invalid Opcode", "Device Not Available", "Double Fault", "Coprocessor Segment Overrun", "Invalid TSS", "Segment Not Present", "Stack-Segment Fault", "General Protection Fault", "Page Fault", "Reserved", "x87 Floating-Point Exception", "Alignment Check", "Machine Check", "SIMD Floating-Point Exception", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Security Exception", "Reserved" ];
+	public const static string[32] faultNames = [ "Divide by Zero Error", "Debug", "Non Maskable Interrupt", "Breakpoint", "Overflow", "Bound Range", "Invalid Opcode", "Device Not Available", "Double Fault", "Coprocessor Segment Overrun", "Invalid TSS", "Segment Not Present", "Stack-Segment Fault", "General Protection Fault", "Page Fault", "Reserved", "x87 Floating-Point32_t Exception", "Alignment Check", "Machine Check", "SIMD Floating-Point32_t Exception", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Security Exception", "Reserved" ];
 
 	/**
 	 Interrupt flags
@@ -168,16 +168,19 @@ class Idt
 		{
 			align (1):
 			uint16_t limit;
-			void* base;
+			uint64_t base;
 		}
 
 		Base pointer;
-		pointer.limit = (uintptr_t.sizeof * table.length) - 1;
-		pointer.base = cast(void*)table.ptr;
+		pointer.limit = (uint64_t.sizeof * table.length) - 1;
+		pointer.base = cast(uint64_t)table.ptr;
 
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "lidt %0" : : "m" (pointer); }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm { lidt pointer; }
 		}
 
@@ -187,9 +190,9 @@ class Idt
 	/**
 	 Set a single gate
 	 */
-	private static void setGate( ref Entry gate, isrCallback handler, ubyte flags )
+	private static void setGate( ref Entry gate, isrCallback handler, uint8_t flags )
 	{
-		ulong addr = cast(ulong)handler;
+		uintptr_t addr = cast(uintptr_t)handler;
 		gate.csSel = 0x08;
 		gate.addrLow = addr & 0xFFFF;
 		gate.addrMid = (addr >> 16) & 0xFFFF;
@@ -202,9 +205,12 @@ class Idt
 	 */
 	public static void Enable()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "sti;"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ sti; }
 		}
 
@@ -216,9 +222,12 @@ class Idt
 	 */
 	public static void Disable()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "cli;"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ cli; }
 		}
 

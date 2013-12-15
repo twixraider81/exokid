@@ -54,13 +54,13 @@ class Config
 	/**
 	 Initialize config
 	 */
-	public static void Initialize( uintptr_t multibootMagic, void* multibootInfo )
+	public static void Initialize( uint32_t multibootMagic, uintptr_t* multibootInfo )
 	{
-		if( Port.Peek!(ubyte)( BDA.Port.BOCHS ) == BDA.Port.BOCHS ) {
+		if( Port.Peek!(uint8_t)( BDA.Port.BOCHS ) == BDA.Port.BOCHS ) {
 			_bAvailable = true;
 		}
 
-		if( !Multiboot.Initialize( multibootMagic, Phys.ptrToVirtual( multibootInfo ) ) ) {
+		if( !Multiboot.Initialize( multibootMagic, Phys.ptrToVirtual!(uintptr_t)( multibootInfo ) ) ) {
 			Trace.printf( "Wrong multiboot magic: %x !", multibootMagic );
 			Cpu.Halt();
 		}
@@ -69,8 +69,8 @@ class Config
 		Cpu.debugBreak();
 		/*if( Multiboot.isV2 ) {
 			_fBuffer = Multiboot2.frameBuffer.fbAddr;
-			_consoleColumns = cast(ushort)Multiboot2.frameBuffer.fbWidth;
-			_consoleRows = cast(ushort)Multiboot2.frameBuffer.fbHeight;
+			_consoleColumns = cast(uint16_t)Multiboot2.frameBuffer.fbWidth;
+			_consoleRows = cast(uint16_t)Multiboot2.frameBuffer.fbHeight;
 		}*/
 	}
 
@@ -88,7 +88,7 @@ class Config
 
 	@property
 	{
-		public static ulong vOffset()
+		public static uintptr_t vOffset()
 		{
 			return _offset;
 		}
@@ -99,9 +99,9 @@ class Config
 	 */
 	@property
 	{
-		public static ulong kernelLMA()
+		public static uintptr_t kernelLMA()
 		{
-			return (cast(ulong)&_kernelLMA);
+			return (cast(uintptr_t)&_kernelLMA);
 		}
 	}
 
@@ -110,9 +110,9 @@ class Config
 	 */
 	@property
 	{
-		public static ulong kernelVMA()
+		public static uintptr_t kernelVMA()
 		{
-			return (cast(ulong)&_kernelVMA);
+			return (cast(uintptr_t)&_kernelVMA);
 		}
 	}
 
@@ -121,9 +121,9 @@ class Config
 	 */
 	@property
 	{
-		public static ulong kernelEnd()
+		public static uintptr_t kernelEnd()
 		{
-			return (cast(ulong)&_end);
+			return (cast(uintptr_t)&_end);
 		}
 	}
 
@@ -132,9 +132,9 @@ class Config
 	 */
 	@property
 	{
-		public static ulong kernelStart()
+		public static uintptr_t kernelStart()
 		{
-			return (cast(ulong)&_start);
+			return (cast(uintptr_t)&_start);
 		}
 	}
 
@@ -154,16 +154,16 @@ class Config
 	/**
 	 Framebuffer address
 	 */
-	private __gshared ulong _fBuffer = 0xb8000UL;
+	private __gshared uintptr_t _fBuffer = 0xb8000UL;
 
 	@property
 	{
-		public static ulong frameBuffer()
+		public static uintptr_t frameBuffer()
 		{
 			return _fBuffer;
 		}
 
-		public static ulong frameBuffer( ulong location )
+		public static uintptr_t frameBuffer( uintptr_t location )
 		{
 			return _fBuffer = location;
 		}
@@ -172,11 +172,11 @@ class Config
 	/**
 	 Console columns
 	 */
-	private __gshared ushort _consoleColumns = 80;
+	private __gshared uint16_t _consoleColumns = 80;
 
 	@property
 	{
-		public static ushort consoleColumns()
+		public static uint16_t consoleColumns()
 		{
 			return _consoleColumns;
 		}
@@ -185,11 +185,11 @@ class Config
 	/**
 	 Console rows
 	 */
-	private __gshared ushort _consoleRows = 24;
+	private __gshared uint16_t _consoleRows = 24;
 
 	@property
 	{
-		public static ushort consoleRows()
+		public static uint16_t consoleRows()
 		{
 			return _consoleRows;
 		}

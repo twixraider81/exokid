@@ -1,16 +1,16 @@
- /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+/**
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.arch.x86.gdt;
 
@@ -33,12 +33,12 @@ class Gdt
 	struct Entry
 	{
 		align(1):
-		ushort limitLow;
-		ushort baseLow;
-		ubyte  baseMid;
-		ubyte  flags;
-		ubyte  granularity;
-		ubyte  baseHigh;
+		uint16_t limitLow;
+		uint16_t baseLow;
+		uint8_t  baseMid;
+		uint8_t  flags;
+		uint8_t  granularity;
+		uint8_t  baseHigh;
 	};
 
 	/**
@@ -49,7 +49,7 @@ class Gdt
 	/**
 	 Segment selector
 	 */
-	public enum Selector : ushort
+	public enum Selector : uint16_t
 	{
 		NULL	= 0x0000,
 		KCODE 	= 0x0008,
@@ -65,7 +65,7 @@ class Gdt
 	 - http://www.lowlevel.eu/wiki/GDT#Das_Access-Byte
 	 - http://wiki.osdev.org/Segmentation
 	 */
-	public enum Flags : ubyte
+	public enum Flags : uint8_t
 	{
 		CS			= 0x18,
 		DS			= 0x10,
@@ -94,17 +94,20 @@ class Gdt
 		struct Base
 		{
 			align(1):
-			ushort limit;
-			ulong base;
+			uint16_t limit;
+			uint64_t base;
 		}
 
 		Base pointer;
-		pointer.limit = (ulong.sizeof * table.length) - 1;
-		pointer.base = cast(ulong)table.ptr;
+		pointer.limit = (uint64_t.sizeof * table.length) - 1;
+		pointer.base = cast(uint64_t)table.ptr;
 
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "lgdt %0" : : "m" (pointer); }
-		} else version(LDC) {
+		}
+		else 
+		{
 			asm { lgdt pointer; }
 		}
 
@@ -114,11 +117,11 @@ class Gdt
 	/**
 	 Set a GDT segment
 	 */
-	static public void setEntry( ushort sel, ubyte flags, ubyte gran, ulong limit = 0xfffff, ulong base = 0 )
+	static public void setEntry( uint16_t sel, uint8_t flags, uint8_t gran, uint64_t limit = 0xfffff, uint64_t base = 0 )
 	{
 		Entry *entry = &table[sel / Entry.sizeof];
 		entry.flags = flags;
-		entry.granularity = cast(ubyte)((gran << 4) | ((limit >> 16) & 0x0F));
+		entry.granularity = cast(uint8_t)((gran << 4) | ((limit >> 16) & 0x0F));
 		entry.limitLow = (limit & 0xFFFF);
 		entry.baseLow = (base & 0xFFFF);
 		entry.baseMid = ((base >> 16) & 0xFF);

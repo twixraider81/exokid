@@ -1,16 +1,16 @@
 /**
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.boot.multiboot;
 
@@ -37,22 +37,22 @@ class Multiboot
 	/**
 	 Pointer to multiboot structure, provided by the bootloader
 	 */
-	private __gshared uintptr_t _mbMagic;
+	private __gshared uint32_t _mbMagic;
 
 	/**
 	 Initialize Multiboot
 	 */
-	public static bool Initialize( uintptr_t multibootMagic, void* infoAddr )
+	public static bool Initialize( uint32_t multibootMagic, uintptr_t* infoAddr )
 	{
 		_mbMagic = multibootMagic;
 
 		if( isV2 ) {
-			Trace.printf( "Multiboot2 info found: %x !\n", infoAddr );
+			Trace.printf( "Multiboot2 info found: %x\n", infoAddr );
 			return Multiboot2.Initialize( infoAddr );
 		}
 
 		if( isV1 ) {
-			Trace.printf( "Multiboot1 info found: %x !\n", infoAddr );
+			Trace.printf( "Multiboot1 info found: %x\n", infoAddr );
 			return Multiboot1.Initialize( infoAddr );
 		}
 

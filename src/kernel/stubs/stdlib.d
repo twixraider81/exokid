@@ -3,6 +3,7 @@
  * http://pubs.opengroup.org/onlinepubs/007908775/xsh/stdlib.h.html
  */
 import core.stdc.stdlib;
+import core.stdc.stdint;
 
 extern(C)
 {
@@ -16,7 +17,7 @@ extern(C)
 		return null;
 	}
 
-	void* realloc( void* p, size_t sz, uint ba = 0 ) pure nothrow
+	void* realloc( void* p, size_t sz, uint32_t ba = 0 ) pure nothrow
 	{
 		return null;
 	}
