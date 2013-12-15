@@ -12,9 +12,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.intr.pic;
+module kernel.arch.x86.pic;
 
-import kernel.common;
+import kernel.trace.trace;
+import kernel.arch.x86.port;
+import core.stdc.stdint;
 
 /**
  PIC Programing

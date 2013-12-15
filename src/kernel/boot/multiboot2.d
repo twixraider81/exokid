@@ -14,7 +14,8 @@
  */
 module kernel.boot.multiboot2;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
 
 /**
  Manage and use Multiboot V2 structures.
@@ -22,11 +23,6 @@ import kernel.common;
  */
 class Multiboot2
 {
-	/**
-	 Expected Bootloader Magic
-	 */
-	private static const bootldrMagic = 0x36d76289;
-
 	/**
 	 Pointer to multiboot structure, provided by the bootloader
 	 */
@@ -135,12 +131,8 @@ class Multiboot2
 	/**
 	 Initialize multiboot2 reader
 	 */
-	public static bool Initialize( uintptr_t multibootMagic, void* infoAddr )
+	public static bool Initialize( void* infoAddr )
 	{
-		if( multibootMagic != bootldrMagic ) {
-			return false;
-		}
-
 		info = cast(Info*)infoAddr;		
 		return true;
 	}

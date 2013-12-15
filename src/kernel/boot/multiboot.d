@@ -14,13 +14,81 @@
  */
 module kernel.boot.multiboot;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
+import kernel.boot.multiboot1;
+import kernel.boot.multiboot2;
 
 /**
  Manage and use Multiboot structures.‎
- - http://www.lowlevel.eu/wiki/Multiboot#Multiboot-Structure
  */
 class Multiboot
 {
+	/**
+	 Multiboot V1 Magic
+	 */
+	private static const _magicV1 = 0x2badb002;
+
+	/**
+	 Multiboot V2 Magic
+	 */
+	private static const _magicV2 = 0x36d76289;
+
+	/**
+	 Pointer to multiboot structure, provided by the bootloader
+	 */
+	private __gshared uintptr_t _mbMagic;
+
+	/**
+	 Initialize Multiboot
+	 */
+	public static bool Initialize( uintptr_t multibootMagic, void* infoAddr )
+	{
+		_mbMagic = multibootMagic;
+
+		if( isV2 ) {
+			Trace.printf( "Multiboot2 info found: %x !\n", infoAddr );
+			return Multiboot2.Initialize( infoAddr );
+		}
+
+		if( isV1 ) {
+			Trace.printf( "Multiboot1 info found: %x !\n", infoAddr );
+			return Multiboot1.Initialize( infoAddr );
+		}
+
+		return false;
+	}
+
+	@property
+	{
+		public static bool isV1()
+		{
+			return ( _mbMagic == _magicV1 );
+		}
+	}
+
+	@property
+	{
+		public static bool isV2()
+		{
+			return ( _mbMagic == _magicV2 );
+		}
+	}
+
+	@property
+	{
+		public static char[] commandLine()
+		{
+			if( isV2 ) {
+				return Multiboot2.commandLine;
+			}
+
+			if( isV1 ) {
+				return Multiboot1.commandLine;
+			}
+
+			return null;
+		}
+	}
 
 }

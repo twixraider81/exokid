@@ -12,9 +12,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.io.serial;
+module kernel.io.serial;
 
-import kernel.common;
+import kernel.io.common;
+import core.stdc.stdint;
+
+version( X86_64 )
+{
+	import kernel.arch.x86.bda;
+	import kernel.arch.x86.port;
+}
+else version( X86 )
+{
+	import kernel.arch.x86.bda;
+	import kernel.arch.x86.port;
+}
 
 /**
  UART / serial port

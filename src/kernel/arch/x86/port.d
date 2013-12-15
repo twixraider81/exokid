@@ -12,9 +12,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.io.port;
+module kernel.arch.x86.port;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.io.common;
 
 /**
  x86 IO Port
@@ -28,9 +29,11 @@ class Port : Common
 	 */
 	public static void Wait()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "outb %%al, $0x80" : : "a"(0); }
-		} else version(LDC) {
+		} else
+		{
 			asm { out 0x80, AL;	}
 		}
 	}
@@ -42,7 +45,8 @@ class Port : Common
 	{
 		T retval;
 
-		version(GNU) {
+		version( GNU )
+		{
 			static if( is(T == ubyte) || is(T == byte) ) {
 				asm{ "in %%dx,%%al;" : "=a" retval : "d" port; }
 			} else static if( is(T == ushort) || is(T == short) ) {
@@ -56,7 +60,9 @@ class Port : Common
 			if( iowait ) {
 				asm{ "out %%al, $0x80;" : : ; }
 			}
-		}  else version(LDC) {
+		}
+		else
+		{
 			asm { mov EDX, port; }
 
 			static if( is(T == ubyte) || is(T == byte) ) {
@@ -84,7 +90,8 @@ class Port : Common
 	 */
 	public static void Poke(T)( ushort port, intptr_t data, bool iowait = false )
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			static if( is(T == ubyte) || is(T == byte) ) {
 				asm{ "outb %%al, %1" : : "a"(data), "Nd"(port); }
 			} else static if( is(T == ushort) || is(T == short) ) {
@@ -98,7 +105,9 @@ class Port : Common
 			if( iowait ) {
 				asm{ "out %%al, $0x80;" : : ; }
 			}
-		} else version(LDC) {
+		}
+		else
+		{
 			asm { mov EAX, data; mov EDX, port;	}
 
 			static if( is(T == ubyte) || is(T == byte) ) {

@@ -14,7 +14,7 @@
  */
 module kernel.arch.x86.x32.state;
 
-import kernel.common;
+import core.stdc.stdint;
 
 version(X86)
 {

@@ -6,13 +6,15 @@
  - http://wiki.osdev.org/Page_Frame_Allocation
  - http://www.brokenthorn.com/Resources/OSDev17.html
  */
-module kernel.arch.x86.mem.physmem;
+module kernel.mem.phys;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
+import kernel.config;
 
 extern(C) void memset(void* addr, ubyte val, uint numBytes);
 
-class PhysMem
+class Phys
 {
 	public static const pageSize = 4096;
 	public static const busSize = uintptr_t.sizeof * 8;

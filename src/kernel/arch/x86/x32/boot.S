@@ -14,25 +14,37 @@ CHECKSUM		equ -(MAGIC + FLAGS)
 
 section .multiboot
 align 4
-       dd MAGIC
-       dd FLAGS
-       dd CHECKSUM
+		dd MAGIC
+		dd FLAGS
+		dd CHECKSUM
 
 section .text
 kernel_entry:
-       mov esp, STACK_SIZE+stack
+		cli
+		mov esp, STACK_SIZE+stack
 
-       push eax
-       push ebx
+		push ebx
+		push eax
 
-       call kmain
+		; enable SSE
+		mov ecx, cr0
+		btr ecx, 2
+		bts ecx, 1
+		mov cr0, ecx
+
+		mov ecx, cr4
+		bts ecx, 9
+		bts ecx, 10
+		mov cr4, ecx
+
+		call kmain
 
 cpuhalt:
-       hlt
-       jmp cpuhalt
+		hlt
+		jmp cpuhalt
 
 ; memory reserved for the kernel's stack
 section .bss
-align 16
+align 32
 stack:
-	resb STACK_SIZE
+		resb STACK_SIZE

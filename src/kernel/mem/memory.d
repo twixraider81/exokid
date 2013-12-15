@@ -12,23 +12,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.x64.state;
+module kernel.mem.memory;
 
-import core.stdc.stdint;
+import kernel.mem.phys;
+import kernel.mem.virt;
 
-version(X86_64)
+/**
+ Memory Management
+ */
+class Memory
 {
 	/**
-	 CPU state for x64
-	 - http://www.lowlevel.eu/wiki/X64#Register
+	 Initialize Memory
 	 */
-	struct CpuState
+	public static void Initialize()
 	{
-		align (1):
-		uintptr_t ds;
-		uintptr_t r15, r14, r13, r12, r11, r10, r9, r8;
-		uintptr_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
-		uintptr_t interrupt, error;
-		uintptr_t rip, cs, eflags, rsp, ss;
+		Phys.Initialize();
+
+		Virt.Initialize();
 	}
 }

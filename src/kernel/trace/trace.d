@@ -14,7 +14,11 @@
  */
 module kernel.trace.trace;
 
-import kernel.common;
+import kernel.trace.e9;
+import kernel.trace.uart;
+import kernel.trace.vga;
+import core.stdc.stdint;
+import core.vararg;
 
 /**
  Tracing class. Redirects messages to the appropriate devices.

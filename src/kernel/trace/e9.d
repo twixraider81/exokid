@@ -14,7 +14,9 @@
  */
 module kernel.trace.e9;
 
-import kernel.common;
+import kernel.trace.device;
+import kernel.arch.x86.port;
+import kernel.arch.x86.bda;
 
 /**
  Trace device for the bochs console

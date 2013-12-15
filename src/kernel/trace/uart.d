@@ -14,7 +14,10 @@
  */
 module kernel.trace.uart;
 
-import kernel.common;
+import kernel.trace.device;
+import kernel.arch.x86.bda;
+import kernel.io.serial;
+import core.stdc.stdint;
 
 /**
  Tracing device for the serial port, only com1 atm

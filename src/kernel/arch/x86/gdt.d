@@ -12,9 +12,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.mem.gdt;
+module kernel.arch.x86.gdt;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
 
 /**
  GDT managment

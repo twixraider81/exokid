@@ -12,9 +12,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module kernel.arch.x86.intr.idt;
+module kernel.arch.x86.idt;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
+import kernel.arch.architecture;
 
 /**
  Interrupt handler structure, should probably be a delegate

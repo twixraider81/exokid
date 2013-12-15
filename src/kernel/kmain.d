@@ -12,13 +12,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import core.stdc.stdint;
 import kernel.kernel;
 
 /**
  C Hook to initialize the kernel
  */
 extern(C) {
-	void kmain( ulong multibootMagic, ulong* multibootInfo )
+	void kmain( uintptr_t multibootMagic, void* multibootInfo )
 	{
 		Kernel.Initialize( multibootMagic, multibootInfo );
 	}

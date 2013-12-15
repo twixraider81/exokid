@@ -13,8 +13,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 module kernel.trace.vga;
+import kernel.trace.device;
 
-import kernel.common;
+import kernel.config;
+import kernel.mem.phys;
+import core.stdc.stdint;
 
 /**
  VGA Framebuffer Device
@@ -64,8 +67,8 @@ class VGA : Device
 		if( c == '\t' ) { // tab.
 			X = X + 4;
 		} else if( c != '\n' && c != '\r' ) {
-			*(PhysMem.frameBuffer + ( X + Y * Config.consoleColumns ) * 2) = c & 0xFF;
-			*(PhysMem.frameBuffer + ( X + Y * Config.consoleColumns ) * 2 + 1) = _colorAttribute;
+			*(Phys.frameBuffer + ( X + Y * Config.consoleColumns ) * 2) = c & 0xFF;
+			*(Phys.frameBuffer + ( X + Y * Config.consoleColumns ) * 2 + 1) = _colorAttribute;
 
 			X = X + 1;
 		}
@@ -167,7 +170,7 @@ class VGA : Device
 	static public void Reset()
 	{
 		for( uint i = 0; i < Config.consoleColumns * Config.consoleRows * 2; i++ ) {
-			*( PhysMem.frameBuffer + i ) = 0;
+			*( Phys.frameBuffer + i ) = 0;
 		}
 	}
 
@@ -187,8 +190,8 @@ class VGA : Device
 
 		for( ; cury <= Config.consoleRows - numLines; cury++ ) {
 			for( uint curx = 0; curx < Config.consoleColumns; curx++ ) {
-				*(PhysMem.frameBuffer + (curx + offset1) * 2) = *(PhysMem.frameBuffer + (curx + offset1 + offset2) * 2);
-				*(PhysMem.frameBuffer + (curx + offset1) * 2 + 1) = *(PhysMem.frameBuffer + (curx + offset1 + offset2) * 2 + 1);
+				*(Phys.frameBuffer + (curx + offset1) * 2) = *(Phys.frameBuffer + (curx + offset1 + offset2) * 2);
+				*(Phys.frameBuffer + (curx + offset1) * 2 + 1) = *(Phys.frameBuffer + (curx + offset1 + offset2) * 2 + 1);
 			}
 
 			offset1 += Config.consoleColumns;
@@ -196,8 +199,8 @@ class VGA : Device
 
 		for( ; cury <= Config.consoleRows; cury++ ) {
 			for( uint curx = 0; curx < Config.consoleColumns; curx++ ) {
-				*(PhysMem.frameBuffer + (curx + offset1) * 2) = 0x00;
-				*(PhysMem.frameBuffer + (curx + offset1) * 2 + 1) = 0x00;
+				*(Phys.frameBuffer + (curx + offset1) * 2) = 0x00;
+				*(Phys.frameBuffer + (curx + offset1) * 2 + 1) = 0x00;
 			}
 		}
 

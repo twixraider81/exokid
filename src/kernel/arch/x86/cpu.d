@@ -14,7 +14,24 @@
  */
 module kernel.arch.x86.cpu;
 
-import kernel.arch.x86.architecture;
+import core.stdc.stdint;
+import kernel.trace.trace;
+import kernel.config;
+import kernel.arch.x86.idt;
+import kernel.arch.x86.pic;
+import kernel.arch.x86.gdt;
+
+public
+{
+	version( X86_64 )
+	{
+		import kernel.arch.x86.x64.state;
+	}
+	else version( X86 )
+	{
+		import kernel.arch.x86.x32.state;
+	}
+}
 
 /**
  CPU Interface

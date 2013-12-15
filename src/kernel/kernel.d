@@ -14,7 +14,11 @@
  */
 module kernel.kernel;
 
-import kernel.common;
+import core.stdc.stdint;
+import kernel.trace.trace;
+import kernel.config;
+import kernel.arch.architecture;
+import kernel.mem.memory;
 
 /**
  Exokid - an EXOKernel In D
@@ -24,18 +28,19 @@ class Kernel
 	/**
 	 Initialisiert den Kernel via Multiboot2.
 	 */
-	public static void Initialize( ulong multibootMagic, ulong* multibootInfo )
+	public static void Initialize( uintptr_t multibootMagic, void* multibootInfo )
 	{
-		Config.Initialize( multibootMagic, multibootInfo );
-
 		Trace.Initialize( Trace.Device.VGA | Trace.Device.E9 | Trace.Device.UART );
+		Config.Initialize( multibootMagic, multibootInfo );
 
 		//Trace.printf( "Exokid kernel booting via %s...\n\n", Multiboot2.bootLoader );
 		Trace.print( "Exokid kernel booting...\n\n" );
-		//Trace.printf( " * Commandline: %s\n", Config.commandLine );
+		Trace.printf( " * Commandline: %s\n", Config.commandLine );
 		Trace.printf( " * Framebuffer: %x, %d:%d\n", Config.frameBuffer, Config.consoleColumns, Config.consoleRows );
 
 		Architecture.Initialize();
+		
+		Memory.Initialize();
 
 		Run();
 	}
