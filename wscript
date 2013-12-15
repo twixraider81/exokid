@@ -26,7 +26,7 @@ SUPPORTDIR = TOP + '/support/'
 CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
 
 SRCDIR = 'src/'
-RTDIR = SRCDIR + 'druntime/src/'
+RTDIR = SRCDIR + 'druntime/'
 KERNELDIR = SRCDIR + 'kernel/'
 
 IMAGE = TOP + '/build/kernel.img'
@@ -224,7 +224,16 @@ class image(Task.Task):
 # build target
 def build(bld):
 	# druntime
-	bld.stlib( source = bld.path.ant_glob( RTDIR + '**/*.d'), target='druntime', includes=[RTDIR] )
+	#rtsources = bld.path.ant_glob( RTDIR + '**/*.d')
+	rtsources = bld.path.ant_glob( RTDIR + 'object_.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'core/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'core/stdc/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'gcstub/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/typeinfo/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/util/*.d')
+	rtsources += bld.path.ant_glob( RTDIR + 'gcc/*.d')
+	bld.stlib( source = rtsources, target='druntime', includes=[RTDIR] )
 
 	# kernel binary
 	sources = bld.path.ant_glob( KERNELDIR + '**/*.d')
