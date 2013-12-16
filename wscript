@@ -29,18 +29,37 @@ SRCDIR = 'src/'
 RTDIR = SRCDIR + 'druntime/'
 KERNELDIR = SRCDIR + 'kernel/'
 
-IMAGE = TOP + '/build/kernel.img'
-KERNEL = TOP + '/build/kernel.bin'
-CONF = 'build/c4che/_cache.py'
-
 # initialization, construct pseudo classes
 def init( ctx ):
-	for x in 'x64,x32'.split( ',' ):
-		for y in ( BuildContext, CleanContext, InstallContext, UninstallContext ):
-			name = y.__name__.replace('Context','').lower()
-			class tmp(y):
-				cmd = name + ':' + x
-				variant = x
+	for x in 'x64,x32,aarch64'.split( ',' ):
+		class tmp( CleanContext ):
+			cmd = 'clean:' + x
+			variant = x
+
+		class tmp( BuildContext ):
+			cmd = 'build:' + x
+			variant = x
+
+		class tmp( BuildContext ):
+			cmd = 'bochs:' + x
+			fun = 'bochs'
+
+		class tmp( BuildContext ):
+			cmd = 'qemu:' + x
+			fun = 'qemu'
+
+		class tmp( BuildContext ):
+			cmd = 'gdb:' + x
+			fun = 'gdb'
+
+		class tmp( BuildContext ):
+			cmd = 'kdbg:' + x
+			fun = 'kdbg'
+
+		class tmp( BuildContext ):
+			cmd = 'disasm:' + x
+			fun = 'disasm'
+
 
 # load options
 def options( opt ):
@@ -48,7 +67,7 @@ def options( opt ):
 	opt.load( 'gas' )
 	opt.load( 'd' )
 
-	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32)' )
+	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32,aarch64)' )
 	opt.add_option( '--mode', action = 'store', default = 'debug', help = 'the mode to compile in (debug or release)' )
 	opt.add_option( '--compiler', action = 'store', default = 'gdc', help = 'the compiler to use (gdc, ldc2 or dmd2)' )
 
@@ -65,16 +84,18 @@ def configure( conf ):
 		# common programs
 		conf.find_program( 'awk', var = 'AWK', mandatory = True )
 		conf.find_program( 'grep', var = 'GREP', mandatory = True )
-		conf.find_program( 'tar', var = 'TAR', mandatory = False )
 		conf.find_program( 'less', var = 'LESS', mandatory = False )
 		conf.find_program( 'gdb', var = 'GDB', mandatory = False )
 		conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
+		conf.find_program( 'tar', var = 'TAR', mandatory = False )
 
 		# cross compiler tuple
 		if arch == 'x64':
 			tuple = 'x86_64-pc-elf'
 		elif arch == 'x32':
 			tuple = 'i686-pc-elf'
+		elif arch == 'aarch64':
+			tuple = 'aarch64-none-elf'
 		else:
 			conf.fatal( '--arch invalid architecture "' + arch + '"' )
 
@@ -86,6 +107,7 @@ def configure( conf ):
 		conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
 		conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
 		conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
+		conf.find_program( 'bochs', var = 'BOCHS', path_list=CCDIR, mandatory = False )
 		conf.load( 'objcopy' )
 		conf.load( 'gas' )
 
@@ -93,6 +115,8 @@ def configure( conf ):
 			conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
 		elif arch == 'x32':
 			conf.find_program( 'qemu-system-i386', var = 'QEMU', mandatory = False )
+		elif arch == 'aarch64':
+			conf.find_program( 'qemu-system-arm', var = 'QEMU', mandatory = False )
 
 		if conf.options.compiler == 'gdc':
 			conf.find_program( tuple + '-gdc', path_list=CCDIR, var='D', mandatory = True )
@@ -163,7 +187,7 @@ def configure( conf ):
 				conf.env.append_value( 'DFLAGS', ['-debug'] )
 
 	for arch in conf.options.arch.split( ',' ):
-		conf.msg( 'configured target build:' + arch + ' / clean:' + arch + '', True, 'CYAN' )
+		conf.msg( 'configured target build:' + arch + ' / clean:' + arch, True, 'CYAN' )
 
 
 # custom link, this is awefull...
@@ -178,7 +202,7 @@ class kernel( ccroot.link_task ):
 # create bochs symbol table
 @TaskGen.feature( 'sym' )
 @TaskGen.after_method( 'kernel' )
-def sym(self):
+def sym( self ):
 	kernel_output = self.link_task.outputs[0]
 	self.syms_task = self.create_task( 'sym', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.sym').name) )
 
@@ -193,7 +217,7 @@ class sym( Task.Task ):
 # create bootable image
 @TaskGen.feature( 'image' )
 @TaskGen.after_method( 'kernel' )
-def image(self):
+def image( self ):
 	kernel_output = self.link_task.outputs[0]
 	self.syms_task = self.create_task( 'image', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.img').name) )
 
@@ -212,10 +236,9 @@ class image( Task.Task ):
 # build target
 def build( bld ):
 	if not bld.variant:
-		bld.fatal( 'call ./waf x64:build, x64:clean, x32:build, etc.' )
+		bld.fatal( 'call ./waf build:x64, clean:x32, build:x32, etc.' )
 
 	# druntime
-	#rtsources = bld.path.ant_glob( RTDIR + '**/*.d')
 	rtsources = bld.path.ant_glob( RTDIR + 'object_.d')
 	rtsources += bld.path.ant_glob( RTDIR + 'core/*.d')
 	rtsources += bld.path.ant_glob( RTDIR + 'core/stdc/*.d')
@@ -243,56 +266,64 @@ def build( bld ):
 # todo target
 def todo( ctx ):
 	"Show todos"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.GREP + ' -Hnr "//FIXME" '  + SRCDIR, shell=True )
-
+	subprocess.call( 'grep -Hnr "//FIXME" '  + SRCDIR, shell=True )
 
 # backup target
 def backup( ctx ):
 	"Create backup at ~/backup/"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.TAR + ' --exclude cc --exclude logs --exclude build --exclude gdc/.git --exclude gdc/gcc -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
-
+	subprocess.call( 'tar --exclude cc --exclude logs --exclude build -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
 
 # bochs target
-def bochs( ctx ):
+def bochs( BuildContext ):
 	"Start bochs with settings from support/bochsrc and load kernel.img"
-	subprocess.call( CCDIR + 'bochs -qf '  + SUPPORTDIR + 'bochsrc', shell=True )
+	arch = BuildContext.cmd.split( ':' )
 
+	if len(arch) < 2:
+		BuildContext.fatal( 'call ./waf bochs:x64, bochs:x32 etc.' )
+
+	arch = arch[1]
+	subprocess.call( BuildContext.all_envs[arch].BOCHS + ' -qf '  + SUPPORTDIR + 'bochsrc.' + arch, shell=True )
 
 # qemu target
-def qemu( ctx ):
+def qemu( BuildContext ):
 	"Start qemu and load kernel.img"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
+	arch = BuildContext.cmd.split( ':' )
 
-	if env.ARCH == 'x64':
-		subprocess.call( env.QEMU + ' --no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio -hda ' + IMAGE, shell=True )
-	elif env.ARCH == 'x32':
-		subprocess.call( env.QEMU + ' --no-reboot -no-shutdown -s -S -m 512 -monitor stdio -serial stdio -kernel ' + KERNEL, shell=True )
+	if len(arch) < 2:
+		BuildContext.fatal( 'call ./waf qemu:x64, qemu:x32 etc.' )
 
+	arch = arch[1]
+	subprocess.call( BuildContext.all_envs[arch].QEMU + ' --no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio -hda ' + BuildContext.out_dir + '/' + arch + '/kernel.img', shell=True )
 
 # gdb target
-def gdb( ctx ):
+def gdb( BuildContext ):
 	"Start GDB and load kernel.bin"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.GDB + ' --tui --eval-command="target remote :1234" ' + KERNEL, shell=True )
+	arch = BuildContext.cmd.split( ':' )
 
+	if len(arch) < 2:
+		BuildContext.fatal( 'call ./waf gdb:x64, gdb:x32 etc.' )
 
-# gdb target
-def kdbg( ctx ):
+	arch = arch[1]
+	subprocess.call( BuildContext.all_envs[arch].GDB + ' --tui --eval-command="target remote :1234" ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
+
+# kdbg target
+def kdbg( BuildContext ):
 	"Start KDBG and load kernel.bin"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.KDBG + ' -r :1234  ' + KERNEL, shell=True )
+	arch = BuildContext.cmd.split( ':' )
 
+	if len(arch) < 2:
+		BuildContext.fatal( 'call ./waf kdbg:x64, kdbg:x32 etc.' )
+
+	arch = arch[1]
+	subprocess.call( BuildContext.all_envs[arch].KDBG + ' -r :1234 ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
 
 # disasm target
-def disasm( ctx ):
-	"Dump dissasmbled binary"
-	env = ConfigSet()
-	env.load( ctx.path.make_node( CONF ).abspath() )
-	subprocess.call( env.OBJDUMP + ' -S ' + KERNEL + ' | ' + env.LESS, shell=True )
+def disasm( BuildContext ):
+	"Disassemble kernel.bin"
+	arch = BuildContext.cmd.split( ':' )
+
+	if len(arch) < 2:
+		BuildContext.fatal( 'call ./waf disasm:x64, disasm:x32 etc.' )
+
+	arch = arch[1]
+	subprocess.call( BuildContext.all_envs[arch].OBJDUMP + ' -S ' + BuildContext.out_dir + '/' + arch + '/kernel.bin | ' + BuildContext.all_envs[arch].LESS, shell=True )
