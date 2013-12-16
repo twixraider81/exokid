@@ -122,11 +122,11 @@ def configure( conf ):
 		if arch == 'x64':
 			conf.env.append_value( 'ASFLAGS', ['-march=generic64', '--64'] )
 			conf.env.append_value( 'DFLAGS', ['-m64'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
+			conf.env.append_value( 'LDFLAGS', ['-T ' + TOP + '/src/kernel/arch/x86/x64/link.ld'] )
 		elif arch == 'x32':
 			conf.env.append_value( 'ASFLAGS', ['-march=generic32', '--32'] )
 			conf.env.append_value( 'DFLAGS', ['-m32'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
+			conf.env.append_value( 'LDFLAGS', ['-T ' + TOP + '/src/kernel/arch/x86/x32/link.ld'] )
 
 		
 		# configure compiler specifics
