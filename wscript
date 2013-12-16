@@ -150,19 +150,23 @@ def configure( conf ):
 			conf.env.append_value( 'ASFLAGS', ['-march=generic32', '--32'] )
 			conf.env.append_value( 'DFLAGS', ['-m32'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ' + TOP + '/src/kernel/arch/x86/x32/link.ld'] )
-
+		elif arch == 'aarch64':
+			conf.env.append_value( 'ASFLAGS', ['-march=armv8-a'] )
+			conf.env.append_value( 'LDFLAGS', ['-T ' + TOP + '/src/kernel/arch/arm/aarch64/link.ld'] )
 		
 		# configure compiler specifics
 		if conf.options.compiler == 'gdc':
-			conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-nostdinc', '-nostdlib', '-fno-bounds-check', '-march=native'] )
+			conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-nostdinc', '-nostdlib', '-fno-bounds-check'] )
 
 			if conf.options.mode == 'debug':
 				conf.env.append_value( 'DFLAGS', ['-fdebug'] )
 
 			if arch == 'x64':
-				conf.env.append_value( 'DFLAGS', ['-mcmodel=kernel', '-mno-red-zone', '-mno-mmx', '-mno-3dnow' ] )
+				conf.env.append_value( 'DFLAGS', ['-march=native', '-mcmodel=kernel', '-mno-red-zone', '-mno-mmx', '-mno-3dnow' ] )
 			elif arch == 'x32':
-				conf.env.append_value( 'DFLAGS', ['-mno-mmx', '-mno-3dnow'] )
+				conf.env.append_value( 'DFLAGS', ['-march=native', '-mno-mmx', '-mno-3dnow'] )
+			elif arch == 'aarch64':
+				conf.env.append_value( 'DFLAGS', ['-march=armv8-a', '-mcmodel=large'] )
 
 		elif conf.options.compiler == 'ldc2':
 			conf.env.append_value( 'DFLAGS', ['-dw', '-d-version=BareMetal', '-disable-simplify-drtcalls', '-disable-simplify-libcalls', '-ignore', '-march=native', '-nodefaultlib', '-w', '-fatal-assembler-warnings'] )
