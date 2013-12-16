@@ -17,7 +17,6 @@ module kernel.arch.x86.cpu;
 import core.stdc.stdint;
 import kernel.trace.trace;
 import kernel.config;
-import kernel.arch.x86.idt;
 import kernel.arch.x86.pic;
 import kernel.arch.x86.gdt;
 
@@ -26,10 +25,12 @@ public
 	version( X86_64 )
 	{
 		import kernel.arch.x86.x64.state;
+		import kernel.arch.x86.x64.idt;
 	}
 	else version( X86 )
 	{
 		import kernel.arch.x86.x32.state;
+		import kernel.arch.x86.x32.idt;
 	}
 }
 
@@ -58,9 +59,12 @@ class Cpu
 	 */
 	public static void Initialize()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "cli;"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ cli; }
 		}
 
@@ -69,6 +73,10 @@ class Cpu
 		} else {
 			Trace.print( " * Bochs: not found.\n" );
 		}
+
+		gdt.Initialize();
+		idt.Initialize();
+		pic.Initialize();
 	}
 
 	/**
@@ -76,9 +84,12 @@ class Cpu
 	 */
 	public static void Halt()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "cli; l: hlt; jmp l;"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ cli; l: hlt; jmp l; }
 		}
 	}
@@ -88,11 +99,48 @@ class Cpu
 	 */
 	public static void Noop()
 	{
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "nop; nop; nop;"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ nop; nop; nop; }
 		}
+	}
+
+	/**
+	 Activate interrupts
+	 */
+	public static void enableInterrupts()
+	{
+		version( GNU )
+		{
+			asm{ "sti;"; }
+		}
+		else
+		{
+			asm{ sti; }
+		}
+	
+		Trace.print( " * Interrupts: enabled.\n" );
+	}
+	
+	/**
+	 Deactivate interrupts
+	 */
+	public static void disableInterrupts()
+	{
+		version( GNU )
+		{
+			asm{ "cli;"; }
+		}
+		else
+		{
+			asm{ cli; }
+		}
+	
+		Trace.print( " * Interrupts: disabled.\n" );
 	}
 
 	/**
@@ -104,9 +152,12 @@ class Cpu
 			return;
 		}
 		
-		version(GNU) {
+		version( GNU )
+		{
 			asm{ "xchg %%bx, %%bx"; }
-		} else version(LDC) {
+		}
+		else
+		{
 			asm{ xchg BX, BX; }
 		}
 	}

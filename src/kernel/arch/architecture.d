@@ -33,22 +33,9 @@ class Architecture
 	 */
 	public static bool Initialize()
 	{
-		version( X86_64 )
-		{
-			Cpu.Initialize();
-			Cpu.gdt.Initialize();
-			Cpu.idt.Initialize();
-			Cpu.pic.Initialize();
-			Cpu.idt.Enable();
-		}
-		else version( X86 )
-		{
-			Cpu.Initialize();
-			Cpu.gdt.Initialize();
-			Cpu.idt.Initialize();
-			Cpu.pic.Initialize();
-			Cpu.idt.Enable();
-		}
+		Cpu.Initialize();
+		
+		Cpu.enableInterrupts();
 
 		return true;
 	}
