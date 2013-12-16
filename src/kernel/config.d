@@ -83,7 +83,7 @@ class Config
 	}
 	else version(X86)
 	{
-		private static const _offset = 0x0;
+		private static const _offset = 0x100000;
 	}
 
 	@property

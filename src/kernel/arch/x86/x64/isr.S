@@ -1,123 +1,133 @@
-; implemented in idt.d
-extern isrHandler
+/**
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-%macro isrException 1 ; interrupt without errorcode
-global isrException%1
-isrException%1:
-	push 0
-	push %1
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+.extern isrHandler
+
+.macro isrException exception
+.global isrException\exception
+isrException\exception:
+	push $0
+	push $\exception
 	jmp isrStub
-%endmacro
+.endm
 
 
-%macro isrExceptionErr 1 ; interrupt with errorcode
-global isrException%1
-isrException%1:
-	push %1
+.macro isrExceptionErr exception
+.global isrException\exception
+isrException\exception:
+	push $\exception
 	jmp isrStub
-%endmacro
+.endm
 
 
-%macro isrIrq 2 ; irq, no exception
-global isrIrq%1
-isrIrq%1:
-	push 0
-	push %2
+.macro isrIrq irq exception
+.global isrIrq\irq
+isrIrq\irq:
+	push $0
+	push $\exception
 	jmp isrStub
-%endmacro
+.endm
 
 
-global isrIpiPanic ; panic ipi
+.global isrIpiPanic
 isrIpiPanic:
-	push 0
-	push 0xFB
+	push $0
+	push $0xFB
 	jmp isrStub
 
 
-global isrIpiTlb ; tlb shootdown ipi
+.global isrIpiTlb
 isrIpiTlb:
-	push 0
-	push 0xFC
+	push $0
+	push $0xFC
 	jmp isrStub
 
 
-global isrLapicTimer ; lvt timer
+.global isrLapicTimer
 isrLapicTimer:
-	push 0
-	push 0xFD
+	push $0
+	push $0xFD
 	jmp isrStub
 
 
-global isrLapicError ; lvt error
+.global isrLapicError
 isrLapicError:
-	push 0
-	push 0xFE
+	push $0
+	push $0xFE
 	jmp isrStub
 
 
-global isrLapicSpurious ; spurious
+.global isrLapicSpurious
 isrLapicSpurious:
-	push 0
-	push 0xFF
+	push $0
+	push $0xFF
 	jmp isrStub
 
 
 isrStub:
-	; save registers on stack
-	push rax
-	push rbx
-	push rcx
-	push rdx
-	push rsi
-	push rdi
-	push rbp
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r14
+	push %rax
+	push %rbx
+	push %rcx
+	push %rdx
+	push %rsi
+	push %rdi
+	push %rbp
+	push %r8
+	push %r9
+	push %r10
+	push %r11
+	push %r12
+	push %r13
+	push %r14
+	push %r14
 
-	mov ax, ds
-	push rax
+	mov %ds, %ax
+	push %rax
 
-	mov ax, 0x10
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
+	mov $0x10, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+	mov %ax, %ss
 
-	mov rdi, rsp
+	mov %rsp, %rdi
 
-	; call exception handler
 	call isrHandler
 
-	pop rax
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
+	pop %rax
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
 
-	; restore registers
-	pop r14
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r9
-	pop r8
-	pop rbp
-	pop rdi
-	pop rsi
-	pop rdx
-	pop rcx
-	pop rbx
-	pop rax
-	add rsp, 16
+	pop %r14
+	pop %r14
+	pop %r13
+	pop %r12
+	pop %r11
+	pop %r10
+	pop %r9
+	pop %r8
+	pop %rbp
+	pop %rdi
+	pop %rsi
+	pop %rdx
+	pop %rcx
+	pop %rbx
+	pop %rax
+	add $16, %rsp
 
 	iretq
 
