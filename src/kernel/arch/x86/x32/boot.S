@@ -12,48 +12,48 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-.extern kmain
-.global kernel_entry
+.set STACK_SIZE,	0x4000
+.set MAGIC,			0x1BADB002
+.set FLAGS,			0x00010003
+.set CHECKSUM, 		-(MAGIC + FLAGS)
 
-.set PAGE_SIZE, 0x1000
-.set STACK_SIZE, 0x4000
-
-.set MAGIC, 0x1badb002
-.set FLAGS, 0x0
-.set CHECKSUM, -(MAGIC + FLAGS)
-
-.section .multiboot
+.section multiboot
 .align 4
+multiboot_header:
 	.long MAGIC
 	.long FLAGS
 	.long CHECKSUM
-
-
-.section .bootstack
-stack_bottom:
-.skip STACK_SIZE
-stack_top:
+	.long multiboot_header
 
 .section .text
+.extern kmain
+.global kernel_entry
 kernel_entry:
 	cli
-	movl $stack_top, %esp
+
+	mov $stack, %esp
+	mov %esp, %ebp
 
 	push %ebx
 	push %eax
 
-	movl %cr0, %ecx
+	mov %cr0, %ecx
 	btr $2, %ecx
 	btr $1, %ecx
-	movl %ecx, %cr0
+	mov %ecx, %cr0
 
-	movl %cr4, %ecx
+	mov %cr4, %ecx
 	btr $9, %ecx
 	btr $10, %ecx
-	movl %ecx, %cr4
+	mov %ecx, %cr4
 
 	call kmain
 
-cpuhalt:
+halt:
+	cli
 	hlt
-	jmp cpuhalt
+	jmp halt
+
+.section .bss
+.space STACK_SIZE
+stack:
