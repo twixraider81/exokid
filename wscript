@@ -14,7 +14,7 @@
 
 import os, subprocess, sys, re
 from waflib import Build, Context, Scripting, Utils, Task, TaskGen
-from waflib.Build import BuildContext
+from waflib.Build import BuildContext, CleanContext, InstallContext, UninstallContext
 from waflib.ConfigSet import ConfigSet 
 from waflib.Tools import ccroot
 
@@ -33,17 +33,19 @@ IMAGE = TOP + '/build/kernel.img'
 KERNEL = TOP + '/build/kernel.bin'
 CONF = 'build/c4che/_cache.py'
 
-# initialization
-#def init(ctx):
-#	ctx.load('build_logs')
+# initialization, construct pseudo classes
+def init( ctx ):
+	for x in 'x64,x32'.split( ',' ):
+		for y in ( BuildContext, CleanContext, InstallContext, UninstallContext ):
+			name = y.__name__.replace('Context','').lower()
+			class tmp(y):
+				cmd = name + ':' + x
+				variant = x
 
 # load options
-def options(opt):
-	opt.load( 'nasm' )
+def options( opt ):
 	opt.load( 'ar' )
 	opt.load( 'gas' )
-	#opt.load( 'eclipse' )
-	#opt.load( 'objcopy' )
 	opt.load( 'd' )
 
 	opt.add_option( '--arch', action = 'store', default = 'x64', help = 'the architecture to build comma seperated (x64 or x64,x32)' )
@@ -52,135 +54,120 @@ def options(opt):
 
 
 # configure target
-def configure(conf):
-	# configure assembler & select cross compiler
-	if conf.options.arch == 'x64' or conf.options.arch == 'x86_64-pc-elf':
-		tuple = 'x86_64-pc-elf'
-		conf.load( 'nasm' )
-		conf.env.append_value( 'ASFLAGS', [ '-felf64', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
-
-		if conf.options.mode == 'debug':
-			conf.env.append_value( 'ASFLAGS', ['-g','-Fdwarf'] ) # -m amd64 -g dwarf2 for yasm?
-
-		conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
-	elif conf.options.arch == 'x32' or conf.options.arch == 'i686-pc-elf':
-		tuple = 'i686-pc-elf'
-		conf.load( 'nasm' )
-		conf.env.append_value( 'ASFLAGS', [ '-felf32', '-Ox', '-s', '-Wfloat-denorm', '-Wgnu-elf-extensions', '-Werror' ] )
-
-		if conf.options.mode == 'debug':
-			conf.env.append_value( 'ASFLAGS', ['-g','-Fdwarf'] )
-
-		conf.find_program( 'qemu-system-i386', var = 'QEMU', mandatory = False )
-	else:
-		conf.fatal( '--arch invalid architecture.' )
-
-
-	# store arch & mode for later reuse
-	conf.env.ARCH = conf.options.arch;
+def configure( conf ):
 	conf.env.MODE = conf.options.mode;
+	conf.env.ARCH = conf.options.arch;
+
+	for arch in conf.options.arch.split( ',' ):
+		# store variant
+		conf.setenv( arch )
+
+		# common programs
+		conf.find_program( 'awk', var = 'AWK', mandatory = True )
+		conf.find_program( 'grep', var = 'GREP', mandatory = True )
+		conf.find_program( 'tar', var = 'TAR', mandatory = False )
+		conf.find_program( 'less', var = 'LESS', mandatory = False )
+		conf.find_program( 'gdb', var = 'GDB', mandatory = False )
+		conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
+
+		# cross compiler tuple
+		if arch == 'x64':
+			tuple = 'x86_64-pc-elf'
+		elif arch == 'x32':
+			tuple = 'i686-pc-elf'
+		else:
+			conf.fatal( '--arch invalid architecture "' + arch + '"' )
+
+		# arch related programs
+		conf.find_program( tuple + '-gcc', var='CC', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-ar', var='AR', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-ld', var = 'LD', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-as', var = 'AS', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
+		conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
+		conf.load( 'objcopy' )
+		conf.load( 'gas' )
+
+		if arch == 'x64':
+			conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
+		elif arch == 'x32':
+			conf.find_program( 'qemu-system-i386', var = 'QEMU', mandatory = False )
+
+		if conf.options.compiler == 'gdc':
+			conf.find_program( tuple + '-gdc', path_list=CCDIR, var='D', mandatory = True )
+			conf.load( 'gdc' )
+		elif conf.options.compiler == 'ldc2' or conf.options.compiler == 'ldc':
+			conf.fatal( '--compiler, only gdc supported for now.' )
+			conf.find_program( 'ldc2', var='D', mandatory = True )
+			conf.load( 'ldc2' )
+		elif conf.options.compiler == 'dmd2' or conf.options.compiler == 'dmd':
+			conf.fatal( '--compiler, only gdc supported for now.' )
+			conf.find_program( 'dmd', path_list=CCDIR, var='D', mandatory = True )
+			conf.load( 'dmd' )
+		else:
+			conf.fatal( '--compiler invalid compiler.' )
 
 
-	conf.find_program( 'awk', var = 'AWK', mandatory = True )
-	conf.find_program( 'grep', var = 'GREP', mandatory = True )
-	conf.find_program( 'tar', var = 'TAR', mandatory = False )
-	conf.find_program( 'less', var = 'LESS', mandatory = False )
-	conf.find_program( 'gdb', var = 'GDB', mandatory = False )
-	conf.find_program( 'kdbg', var = 'KDBG', mandatory = False )
-	conf.find_program( tuple + '-gcc', var='CC', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-ar', var='AR', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-ld', var = 'LD', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-as', var = 'AS', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
-	conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
-	conf.load( 'objcopy' )
 
-
-	# detect compiler & tools
-	if conf.options.compiler == 'gdc':
-		conf.find_program( tuple + '-gdc', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'gdc' )
-	elif conf.options.compiler == 'ldc2' or conf.options.compiler == 'ldc':
-		conf.find_program( 'ldc2', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'ldc2' )
-		cconf.fatal( '--compiler, only gdc supported for now.' )
-	elif conf.options.compiler == 'dmd2' or conf.options.compiler == 'dmd':
-		conf.find_program( 'dmd', path_list=CCDIR, var='D', mandatory = True )
-		conf.load( 'dmd' )
-		conf.fatal( '--compiler, only gdc supported for now.' )
-	else:
-		conf.fatal( '--compiler invalid compiler.' )
-
-
-	# gdc specifics
-	if conf.options.compiler == 'gdc':
-		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-march=native', '-mno-red-zone', '-nostdinc', '-nostdlib', '-mno-mmx', '-mno-3dnow', '-fno-bounds-check'] )
+		#configure toolchain
 		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
 
-		# release mode
 		if conf.options.mode == 'release':
 			conf.env.append_value( 'DFLAGS', ['-O2'] )
-		# debug mode
 		elif conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-O0', '-g', '-fdebug'] )
+			conf.env.append_value( 'DFLAGS', ['-O0', '-g'] )
+			conf.env.append_value( 'ASFLAGS', ['--nocompress-debug-sections', '-D', '-g', '--gdwarf-2'] )
 
-		# x64 specifics
-		if conf.options.arch == 'x64':
-			conf.env.append_value( 'DFLAGS', ['-m64', '-mcmodel=kernel'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
-		# x32 specifics
-		elif conf.options.arch == 'x32':
-			conf.env.append_value( 'DFLAGS', ['-m32'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
-
-	# ldc specifics
-	elif conf.options.compiler == 'ldc2':
-		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-dw', '-d-version=BareMetal', '-disable-red-zone', '-disable-simplify-drtcalls', '-disable-simplify-libcalls', '-ignore', '-march=native', '-nodefaultlib', '-w', '-x86-early-ifcvt', '-fatal-assembler-warnings'] )
-		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
-
-		# release mode
-		if conf.options.mode == 'release':
-			conf.env.append_value( 'DFLAGS', ['-O2', '-release'] )
-		# debug mode
-		elif conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-O0', '-d-debug', '-g', '-enable-asserts','-asm-verbose'] )
-
-		# x64 specifics
-		if conf.options.arch == 'x64':
-			conf.env.append_value( 'DFLAGS', ['-m64', '-code-model=kernel'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
-		# x32 specifics
-		elif conf.options.arch == 'x32':
-			conf.env.append_value( 'DFLAGS', ['-m32'] )
-			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
-
-	# dmd specifics
-	elif conf.options.compiler == 'dmd':
-		# common flags for compiler and linker
-		conf.env.append_value( 'DFLAGS', ['-dw', '-ignore', '-inline', '-noboundscheck', '-version=BareMetal'] )
-		conf.env.append_value( 'LDFLAGS', ['-z defs', '-nostdlib', '-z max-page-size=0x1000'] )
-
-		# release mode
-		if conf.options.mode == 'release':
-			conf.env.append_value( 'DFLAGS', ['-O', '-release'] )
-		# debug mode
-		elif conf.options.mode == 'debug':
-			conf.env.append_value( 'DFLAGS', ['-debug', '-g'] )
-
-		# x64 specifics
-		if conf.options.arch == 'x64':
+		if arch == 'x64':
+			conf.env.append_value( 'ASFLAGS', ['-march=generic64', '--64'] )
 			conf.env.append_value( 'DFLAGS', ['-m64'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x64/link.ld'] )
-		# x32 specifics
-		elif conf.options.arch == 'x32':
+		elif arch == 'x32':
+			conf.env.append_value( 'ASFLAGS', ['-march=generic32', '--32'] )
 			conf.env.append_value( 'DFLAGS', ['-m32'] )
 			conf.env.append_value( 'LDFLAGS', ['-T ../' + SRCDIR + 'kernel/arch/x86/x32/link.ld'] )
 
+		
+		# configure compiler specifics
+		if conf.options.compiler == 'gdc':
+			conf.env.append_value( 'DFLAGS', ['-fversion=BareMetal', '-nostdinc', '-nostdlib', '-fno-bounds-check', '-march=native'] )
+
+			if conf.options.mode == 'debug':
+				conf.env.append_value( 'DFLAGS', ['-fdebug'] )
+
+			if arch == 'x64':
+				conf.env.append_value( 'DFLAGS', ['-mcmodel=kernel', '-mno-red-zone', '-mno-mmx', '-mno-3dnow' ] )
+			elif arch == 'x32':
+				conf.env.append_value( 'DFLAGS', ['-mno-mmx', '-mno-3dnow'] )
+
+		elif conf.options.compiler == 'ldc2':
+			conf.env.append_value( 'DFLAGS', ['-dw', '-d-version=BareMetal', '-disable-simplify-drtcalls', '-disable-simplify-libcalls', '-ignore', '-march=native', '-nodefaultlib', '-w', '-fatal-assembler-warnings'] )
+
+			if conf.options.mode == 'release':
+				conf.env.append_value( 'DFLAGS', ['-release'] )
+			elif conf.options.mode == 'debug':
+				conf.env.append_value( 'DFLAGS', ['-d-debug', '-enable-asserts','-asm-verbose'] )
+
+			if arch == 'x64':
+				conf.env.append_value( 'DFLAGS', ['-code-model=kernel', '-disable-red-zone', '-x86-early-ifcvt'] )
+			elif arch == 'x32':
+				conf.env.append_value( 'DFLAGS', ['-x86-early-ifcvt'] )
+
+		elif conf.options.compiler == 'dmd':
+			conf.env.append_value( 'DFLAGS', ['-dw', '-ignore', '-inline', '-noboundscheck', '-version=BareMetal'] )
+
+			if conf.options.mode == 'release':
+				conf.env.append_value( 'DFLAGS', ['-release'] )
+			elif conf.options.mode == 'debug':
+				conf.env.append_value( 'DFLAGS', ['-debug'] )
+
+	for arch in conf.options.arch.split( ',' ):
+		conf.msg( 'configured target build:' + arch + ' / clean:' + arch + '', True, 'CYAN' )
+
+
 # custom link, this is awefull...
-class kernel(ccroot.link_task):
+class kernel( ccroot.link_task ):
 	shell = True
 	run_str = '${LD} ${LDFLAGS} -o ${TGT} ${SRC} libdruntime.a'
 	ext_out = ['.bin']
@@ -189,13 +176,13 @@ class kernel(ccroot.link_task):
 
 
 # create bochs symbol table
-@TaskGen.feature('sym')
-@TaskGen.after_method('kernel')
+@TaskGen.feature( 'sym' )
+@TaskGen.after_method( 'kernel' )
 def sym(self):
 	kernel_output = self.link_task.outputs[0]
 	self.syms_task = self.create_task( 'sym', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.sym').name) )
 
-class sym(Task.Task):
+class sym( Task.Task ):
 	shell = True
 	run_str = '${NM} -n ${SRC} | ${GREP} -v \'\( [aUw] \)\|\(__crc_\)\|\( \$[adt]\)\' | ${AWK} \'{print $1, $3}\' > ${TGT}'
 	ext_out = ['.sym']
@@ -204,13 +191,13 @@ class sym(Task.Task):
 
 
 # create bootable image
-@TaskGen.feature('image')
-@TaskGen.after_method('kernel')
+@TaskGen.feature( 'image' )
+@TaskGen.after_method( 'kernel' )
 def image(self):
 	kernel_output = self.link_task.outputs[0]
 	self.syms_task = self.create_task( 'image', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.img').name) )
 
-class image(Task.Task):
+class image( Task.Task ):
 	shell = True
 	if re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] == "CYGWIN":
 		run_str = 'xzcat -f ' + SUPPORTDIR + 'fat32.img.xz > ${TGT}; ' + CCDIR + 'mcopy ' + SUPPORTDIR + 'grub.cfg z:/BOOT/GRUB/GRUB.CFG;  ' + CCDIR + 'mcopy ${SRC} z:/BOOT/KERNEL.BIN'
@@ -223,7 +210,10 @@ class image(Task.Task):
 
 
 # build target
-def build(bld):
+def build( bld ):
+	if not bld.variant:
+		bld.fatal( 'call ./waf x64:build, x64:clean, x32:build, etc.' )
+
 	# druntime
 	#rtsources = bld.path.ant_glob( RTDIR + '**/*.d')
 	rtsources = bld.path.ant_glob( RTDIR + 'object_.d')
@@ -239,18 +229,19 @@ def build(bld):
 	# kernel binary
 	sources = bld.path.ant_glob( KERNELDIR + '**/*.d')
 
-	if bld.env.ARCH == 'x64':
+	if bld.variant == 'x64':
 		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/*.S' )
 		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/x64/*.S' )
-	elif bld.env.ARCH == 'x32':
+	elif bld.variant == 'x32':
 		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/*.S' )
 		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/x32/*.S' )
 
 	bld( features="d asm kernel sym image", target='kernel.bin', use='druntime', source=sources, includes=[RTDIR,SRCDIR,KERNELDIR] )
 
 
+
 # todo target
-def todo(ctx):
+def todo( ctx ):
 	"Show todos"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
@@ -258,7 +249,7 @@ def todo(ctx):
 
 
 # backup target
-def backup(ctx):
+def backup( ctx ):
 	"Create backup at ~/backup/"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
@@ -266,13 +257,13 @@ def backup(ctx):
 
 
 # bochs target
-def bochs(ctx):
+def bochs( ctx ):
 	"Start bochs with settings from support/bochsrc and load kernel.img"
 	subprocess.call( CCDIR + 'bochs -qf '  + SUPPORTDIR + 'bochsrc', shell=True )
 
 
 # qemu target
-def qemu(ctx):
+def qemu( ctx ):
 	"Start qemu and load kernel.img"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
@@ -284,7 +275,7 @@ def qemu(ctx):
 
 
 # gdb target
-def gdb(ctx):
+def gdb( ctx ):
 	"Start GDB and load kernel.bin"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
@@ -292,7 +283,7 @@ def gdb(ctx):
 
 
 # gdb target
-def kdbg(ctx):
+def kdbg( ctx ):
 	"Start KDBG and load kernel.bin"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )
@@ -300,7 +291,7 @@ def kdbg(ctx):
 
 
 # disasm target
-def disasm(ctx):
+def disasm( ctx ):
 	"Dump dissasmbled binary"
 	env = ConfigSet()
 	env.load( ctx.path.make_node( CONF ).abspath() )

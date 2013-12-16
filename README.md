@@ -6,7 +6,7 @@ Quickstart
 ----------
 - ./bootstrap.sh
 - ./waf configure
-- ./waf build
+- ./waf build:x64
 
 Look at ./waf --help for further commands, like
 todo, backup, bochs, qemu, gdb, kdbg, disasm
@@ -15,11 +15,11 @@ todo, backup, bochs, qemu, gdb, kdbg, disasm
 Building
 --------
 
-To start the build process first execute bootstrap.sh. The script will check for
-necessary tools and compile a cross compiler toolchain.
+To start the build process first execute bootstrap.sh.
+The script will check for necessary tools and compile a cross compiler toolchain.
+Even if the bootstrap script can build dmd and ldc compilers, only building the kernel via gdc is supported at this moment. 
 
-- ./bootstrap.sh -a x86_64-pc-elf
-- ./bootstrap.sh -c
+- ./bootstrap.sh -a "x86_64-pc-elf i686-pc-elf"
 - -a : cross compiler architecture to build, defaults to x86_64-pc-elf. i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
 - -c : force cleanup (delete downloaded folders)
 - -k : keep downloaded archives
@@ -27,17 +27,17 @@ necessary tools and compile a cross compiler toolchain.
 - -v : verbose, print what the script is doing
 
 This will take a serious amount of time (and disk space), please be patient.
-The built compiler will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something).
-Do not delete this folder.
-For Cygwin LDC is disabled, as it only builds with a few manual fixes.
+
+The compiler toolchain will reside under ./cc/$SYSTEMTYPE/ (i.e. cc/Linux or cc/CYGWIN or something). Do not delete this folder!
+For Cygwin build ldc and dmd are not available. They will only build with a few manual fixes.
 (Clang exception linking & WIN32 defines, configuring libconfig build system etc.)
 
-For LDC your system will need libconfig++-dev (on cygwin configure manually with).
+For ldc your system will need libconfig++-dev (on cygwin configure manually with).
 For Bochs you will need libx11-dev & libgtk2.0-dev.
 
-After the bootstrap script completed, go ahead configure & build the source.
-- ./waf configure --arch=x64 --compiler=gdc
-- ./waf build bochs
+After the bootstrap script completed, go ahead configure & build the sources.
+- ./waf configure --arch=x64,x32 --compiler=gdc
+- ./waf build:x64
 
 
 Background
