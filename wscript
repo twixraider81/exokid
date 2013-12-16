@@ -108,7 +108,6 @@ def configure( conf ):
 		conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
 		conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
 		conf.find_program( 'bochs', var = 'BOCHS', path_list=CCDIR, mandatory = False )
-		conf.load( 'objcopy' )
 		conf.load( 'gas' )
 
 		if arch == 'x64':
