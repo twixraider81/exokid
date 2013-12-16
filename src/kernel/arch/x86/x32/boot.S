@@ -12,18 +12,17 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-.set STACK_SIZE,	0x4000
-.set MAGIC,			0x1BADB002
-.set FLAGS,			0x00010003
-.set CHECKSUM, 		-(MAGIC + FLAGS)
+.set STACK_SIZE,		0x4000
+.set MULTIBOOT_MAGIC,	0x1badb002
+.set MULTIBOOT_FLAGS,	0x00010003
 
 .section multiboot
 .align 4
 multiboot_header:
-	.long MAGIC
-	.long FLAGS
-	.long CHECKSUM
-	.long multiboot_header
+	.int MULTIBOOT_MAGIC
+	.int MULTIBOOT_FLAGS
+	.int -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
+	.int multiboot_header
 
 .section .text
 .extern kmain
