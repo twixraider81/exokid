@@ -1,50 +1,59 @@
-; http://wiki.osdev.org/D_Bare_Bones
-bits 32
+/**
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-; kernel start routine
-extern kmain
-global kernel_entry
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-PAGE_SIZE		equ 0x1000
-STACK_SIZE		equ 0x4000
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+.extern kmain
+.global kernel_entry
 
-MAGIC			equ 0x1badb002
-FLAGS			equ 0x0
-CHECKSUM		equ -(MAGIC + FLAGS)
+.set PAGE_SIZE, 0x1000
+.set STACK_SIZE, 0x4000
 
-section .multiboot
-align 4
-		dd MAGIC
-		dd FLAGS
-		dd CHECKSUM
+.set MAGIC, 0x1badb002
+.set FLAGS, 0x0
+.set CHECKSUM, -(MAGIC + FLAGS)
 
-section .text
+.section .multiboot
+.align 4
+	.long MAGIC
+	.long FLAGS
+	.long CHECKSUM
+
+
+.section .bootstack
+stack_bottom:
+.skip STACK_SIZE
+stack_top:
+
+.section .text
 kernel_entry:
-		cli
-		mov esp, STACK_SIZE+stack
+	cli
+	movl $stack_top, %esp
 
-		push ebx
-		push eax
+	push %ebx
+	push %eax
 
-		; enable SSE
-		mov ecx, cr0
-		btr ecx, 2
-		bts ecx, 1
-		mov cr0, ecx
+	movl %cr0, %ecx
+	btr $2, %ecx
+	btr $1, %ecx
+	movl %ecx, %cr0
 
-		mov ecx, cr4
-		bts ecx, 9
-		bts ecx, 10
-		mov cr4, ecx
+	movl %cr4, %ecx
+	btr $9, %ecx
+	btr $10, %ecx
+	movl %ecx, %cr4
 
-		call kmain
+	call kmain
 
 cpuhalt:
-		hlt
-		jmp cpuhalt
-
-; memory reserved for the kernel's stack
-section .bss
-align 32
-stack:
-		resb STACK_SIZE
+	hlt
+	jmp cpuhalt
