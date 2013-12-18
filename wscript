@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, subprocess, sys, re
+import os, subprocess, sys, re, platform, pipes
 from waflib import Build, Context, Scripting, Utils, Task, TaskGen
 from waflib.Build import BuildContext, CleanContext, InstallContext, UninstallContext
 from waflib.ConfigSet import ConfigSet 
@@ -23,7 +23,7 @@ VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
 SUPPORTDIR = TOP + '/support/'
-CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] + '/bin/'
+CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', platform.uname()[0] )[0] + '/bin/'
 
 SRCDIR = 'src/'
 RTDIR = SRCDIR + 'druntime/'
@@ -207,7 +207,7 @@ class kernel( ccroot.link_task ):
 @TaskGen.after_method( 'kernel' )
 def sym( self ):
 	kernel_output = self.link_task.outputs[0]
-	self.syms_task = self.create_task( 'sym', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.sym').name) )
+	self.syms_task = self.create_task( 'sym', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext( '.sym' ).name ) )
 
 class sym( Task.Task ):
 	shell = True
@@ -222,14 +222,14 @@ class sym( Task.Task ):
 @TaskGen.after_method( 'kernel' )
 def image( self ):
 	kernel_output = self.link_task.outputs[0]
-	self.syms_task = self.create_task( 'image', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext('.img').name) )
+	self.syms_task = self.create_task( 'image', src = kernel_output, tgt = self.path.find_or_declare(kernel_output.change_ext( '.img' ).name ) )
 
 class image( Task.Task ):
 	shell = True
-	if re.findall( '^[a-zA-Z]+', os.uname()[0] )[0] == "CYGWIN":
-		run_str = 'xzcat -f ' + SUPPORTDIR + 'fat32.img.xz > ${TGT}; ' + CCDIR + 'mcopy ' + SUPPORTDIR + 'grub.cfg z:/BOOT/GRUB/GRUB.CFG;  ' + CCDIR + 'mcopy ${SRC} z:/BOOT/KERNEL.BIN'
+	if re.findall( '^[a-zA-Z]+', platform.uname()[0] )[0] == "CYGWIN":
+		run_str = 'export MTOOLS_SKIP_CHECK=1; xzcat -f ' + SUPPORTDIR + 'fat32.img.xz > ${TGT}; ' + CCDIR + 'mcopy -i ${TGT}@@32256 ' + SUPPORTDIR + 'grub.cfg ::/BOOT/GRUB/GRUB.CFG; ' + CCDIR + 'mcopy -i ${TGT}@@32256 ${SRC} ::/BOOT/KERNEL.BIN'
 	else:
-		run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'ext2.img.xz > ${TGT}; mount -o loop,offset=1048576 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; umount tmp; rmdir tmp'
+		run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'ext2.img.xz > ${TGT}; sudo mount -o loop,offset=1048576 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; sudo umount tmp; rmdir tmp'
 
 	ext_out = ['.img']
 	color = 'CYAN'
@@ -242,18 +242,18 @@ def build( bld ):
 		bld.fatal( 'call ./waf build:x64, clean:x32, build:x32, etc.' )
 
 	# druntime
-	rtsources = bld.path.ant_glob( RTDIR + 'object_.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'core/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'core/stdc/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'gcstub/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'rt/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'rt/typeinfo/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'rt/util/*.d')
-	rtsources += bld.path.ant_glob( RTDIR + 'gcc/*.d')
+	rtsources = bld.path.ant_glob( RTDIR + 'object_.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'core/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'core/stdc/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'gcstub/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/typeinfo/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'rt/util/*.d' )
+	rtsources += bld.path.ant_glob( RTDIR + 'gcc/*.d' )
 	bld.stlib( source = rtsources, target='druntime', includes=[RTDIR] )
 
 	# kernel binary
-	sources = bld.path.ant_glob( KERNELDIR + '**/*.d')
+	sources = bld.path.ant_glob( KERNELDIR + '**/*.d' )
 
 	if bld.variant == 'x64':
 		sources += bld.path.ant_glob( KERNELDIR + 'arch/x86/*.S' )
@@ -274,14 +274,14 @@ def todo( ctx ):
 # backup target
 def backup( ctx ):
 	"Create backup at ~/backup/"
-	subprocess.call( 'tar --exclude cc --exclude logs --exclude build -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
+	subprocess.call( 'tar --exclude cc --exclude build -vcj '  + TOP + ' -f ~/backup/exokid-$(date +%Y-%m-%d-%H-%M).tar.bz2', shell=True )
 
 # bochs target
 def bochs( BuildContext ):
 	"Start bochs with settings from support/bochsrc and load kernel.img"
 	arch = BuildContext.cmd.split( ':' )
 
-	if len(arch) < 2:
+	if len( arch ) < 2:
 		BuildContext.fatal( 'call ./waf bochs:x64, bochs:x32 etc.' )
 
 	arch = arch[1]
@@ -292,40 +292,44 @@ def qemu( BuildContext ):
 	"Start qemu and load kernel.img"
 	arch = BuildContext.cmd.split( ':' )
 
-	if len(arch) < 2:
+	if len( arch ) < 2:
 		BuildContext.fatal( 'call ./waf qemu:x64, qemu:x32 etc.' )
 
 	arch = arch[1]
-	subprocess.call( BuildContext.all_envs[arch].QEMU + ' --no-reboot -no-shutdown -s -S -smp 2 -m 512 -monitor stdio -serial stdio -hda ' + BuildContext.out_dir + '/' + arch + '/kernel.img', shell=True )
+	cwd = os.getcwd()
+	os.chdir( BuildContext.out_dir + '/' + arch )
+	cmd = pipes.quote( BuildContext.all_envs[arch].QEMU ) + ' --no-reboot -no-shutdown -S -gdb tcp::1234,ipv4 -smp 2 -m 512 -monitor stdio -hda kernel.img'
+	subprocess.call( cmd, shell=True )
+	os.chdir( cwd )
 
 # gdb target
 def gdb( BuildContext ):
 	"Start GDB and load kernel.bin"
 	arch = BuildContext.cmd.split( ':' )
 
-	if len(arch) < 2:
+	if len( arch ) < 2:
 		BuildContext.fatal( 'call ./waf gdb:x64, gdb:x32 etc.' )
 
 	arch = arch[1]
-	subprocess.call( BuildContext.all_envs[arch].GDB + ' --tui --eval-command="target remote :1234" ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
+	subprocess.call( BuildContext.all_envs[arch].GDB + ' --eval-command="target remote localhost:1234" ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
 
 # kdbg target
 def kdbg( BuildContext ):
 	"Start KDBG and load kernel.bin"
 	arch = BuildContext.cmd.split( ':' )
 
-	if len(arch) < 2:
+	if len( arch ) < 2:
 		BuildContext.fatal( 'call ./waf kdbg:x64, kdbg:x32 etc.' )
 
 	arch = arch[1]
-	subprocess.call( BuildContext.all_envs[arch].KDBG + ' -r :1234 ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
+	subprocess.call( BuildContext.all_envs[arch].KDBG + ' -r localhost:1234 ' + BuildContext.out_dir + '/' + arch + '/kernel.bin', shell=True )
 
 # disasm target
 def disasm( BuildContext ):
 	"Disassemble kernel.bin"
 	arch = BuildContext.cmd.split( ':' )
 
-	if len(arch) < 2:
+	if len( arch ) < 2:
 		BuildContext.fatal( 'call ./waf disasm:x64, disasm:x32 etc.' )
 
 	arch = arch[1]
