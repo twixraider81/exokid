@@ -1,0 +1,15 @@
+memory: guest=512, host=512
+romimage: file="C:\Program Files (x86)\Bochs\BIOS-bochs-latest"
+vgaromimage: file="C:\Program Files (x86)\Bochs\VGABIOS-lgpl-latest"
+ata0-master: type=disk, mode=flat, cylinders=100, heads=16, spt=63, translation=lba, path=kernel.img
+boot: disk
+mouse: enabled=0
+clock: sync=realtime
+cpu: count=1, reset_on_triple_fault=0
+port_e9_hack: enabled=1
+magic_break: enabled=1
+display_library: win32, options="gui_debug"
+pci: enabled=1, chipset=i440fx
+debug_symbols: file=kernel.sym
+com1: enabled=1, mode=file, dev=kernel.out
+log: bochs.out
