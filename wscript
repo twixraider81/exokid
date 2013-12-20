@@ -23,8 +23,8 @@ VERSION = '0.0.1'
 
 TOP = os.path.abspath( os.curdir )
 SUPPORTDIR = TOP + '/support/'
-CCDIR = TOP + '/cc/' + re.findall( '^[a-zA-Z]+', platform.uname()[0] )[0] + '/bin/'
-
+PLATFORM = re.findall( '^[a-zA-Z]+', platform.uname()[0] )[0]
+CCDIR = TOP + '/cc/' + PLATFORM + '/bin/'
 SRCDIR = 'src/'
 RTDIR = SRCDIR + 'druntime/'
 KERNELDIR = SRCDIR + 'kernel/'
@@ -107,8 +107,14 @@ def configure( conf ):
 		conf.find_program( tuple + '-objdump', var='OBJDUMP', path_list=CCDIR, mandatory = True )
 		conf.find_program( tuple + '-objcopy', var = 'OBJCOPY', path_list=CCDIR, mandatory = True )
 		conf.find_program( tuple + '-nm', var = 'NM', path_list=CCDIR, mandatory = True )
-		conf.find_program( 'bochs', var = 'BOCHS', path_list=CCDIR, mandatory = False )
 		conf.load( 'gas' )
+
+		if PLATFORM == "CYGWIN":
+			conf.find_program( 'bochsdbg', var = 'BOCHS', mandatory = False )
+		else:
+			conf.find_program( 'bochs', var = 'BOCHS', path_list=CCDIR, mandatory = False )
+
+
 
 		if arch == 'x64':
 			conf.find_program( 'qemu-system-x86_64', var = 'QEMU', mandatory = False )
@@ -226,7 +232,7 @@ def image( self ):
 
 class image( Task.Task ):
 	shell = True
-	if re.findall( '^[a-zA-Z]+', platform.uname()[0] )[0] == "CYGWIN":
+	if PLATFORM == "CYGWIN":
 		run_str = 'export MTOOLS_SKIP_CHECK=1; xzcat -f ' + SUPPORTDIR + 'fat32.img.xz > ${TGT}; ' + CCDIR + 'mcopy -i ${TGT}@@32256 ' + SUPPORTDIR + 'grub.cfg ::/BOOT/GRUB/GRUB.CFG; ' + CCDIR + 'mcopy -i ${TGT}@@32256 ${SRC} ::/BOOT/KERNEL.BIN'
 	else:
 		run_str = 'mkdir tmp; xzcat -f ' + SUPPORTDIR + 'ext2.img.xz > ${TGT}; sudo mount -o loop,offset=1048576 ${TGT} tmp; cp ${SRC} tmp/boot; cp ' + SUPPORTDIR + 'grub.cfg tmp/boot/grub/; sudo umount tmp; rmdir tmp'
@@ -285,7 +291,11 @@ def bochs( BuildContext ):
 		BuildContext.fatal( 'call ./waf bochs:x64, bochs:x32 etc.' )
 
 	arch = arch[1]
-	subprocess.call( BuildContext.all_envs[arch].BOCHS + ' -qf '  + SUPPORTDIR + 'bochsrc.' + arch, shell=True )
+	cwd = os.getcwd()
+	os.chdir( BuildContext.out_dir + '/' + arch )
+	cmd = pipes.quote( BuildContext.all_envs[arch].BOCHS ) + ' -qf ../../support/bochsrc.' + PLATFORM
+	subprocess.call( cmd, shell=True )
+	os.chdir( cwd )
 
 # qemu target
 def qemu( BuildContext ):
