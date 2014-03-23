@@ -59,7 +59,7 @@ class Config
 		if( Port.Peek!(uint8_t)( BDA.Port.BOCHS ) == BDA.Port.BOCHS ) {
 			_bAvailable = true;
 		}
-
+		Cpu.debugBreak();
 		if( !Multiboot.Initialize( multibootMagic, Phys.ptrToVirtual!(uintptr_t)( multibootInfo ) ) ) {
 			Trace.printf( "Wrong multiboot magic: %x !", multibootMagic );
 			Cpu.Halt();
@@ -77,13 +77,13 @@ class Config
 	/**
 	 Virtual memory offset
 	 */
-	version(X86_64)
+	version( X86_64 )
 	{
 		private static const _offset = 0xFFFFFEFF00000000;
 	}
-	else version(X86)
+	else version( X86 )
 	{
-		private static const _offset = 0x100000;
+		private static const _offset = 0x0;
 	}
 
 	@property

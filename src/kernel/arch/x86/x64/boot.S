@@ -1,252 +1,175 @@
-; http://wiki.osdev.org/64-bit_Higher_Half_Kernel_with_GRUB_2
-bits 32
+/**
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-; kernel start routine
-extern kmain
-; linker provided externals
-extern _start
-extern _end
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-PAGE_SIZE		equ 0x1000
-STACK_SIZE		equ 0x4000
-KERNEL_VMA		equ 0xffffffff80000000
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+.code32
 
-; paging structures
-PAGE_TABLES		equ 0x200
-PAGE_PRESENT	equ 0x1
-PAGE_WRITABLE	equ 0x2
-PAGE_USER		equ 0x4
-PAGE_BIG      	equ 0x80
-PAGE_NEXEC		equ 0x8000000000000000
+.extern kmain
+.extern _start
+.extern _end
 
-; multiboot constants
-MULTIBOOT_MAGIC	equ 0xe85250d6 ; multiboot2
+.equ MULTIBOOT2_HEADER_MAGIC,		0xe85250d6
+.equ MULTIBOOT2_HEADER_ARCH_I386,	0
+.equ MULTIBOOT2_INFO_REQUIRED,		0
+.equ MULTIBOOT2_TAG_TERMINATOR,		0
+.equ MULTIBOOT2_TAG_INFO_REQ,		1
+.equ MULTIBOOT2_TAG_MODULE,			3
+.equ MULTIBOOT2_TAG_ENTRY_ADDRESS,	3
+.equ MULTIBOOT2_TAG_MEMMAP,			6
+.equ MULTIBOOT2_TAG_MODULE_ALIGN,	6
 
-; multiboot2 header
-section .initl
-align 8
-header:
-	dd MULTIBOOT_MAGIC
-	dd 0 ; x86
-	dd (header_end - header)
-	dd (0 - MULTIBOOT_MAGIC - 0 - (header_end - header)) & 0xFFFFFFFF
+.equ PAGE_SIZE,		0x1000
+.equ STACK_SIZE,	0x4000
+
+// multiboot2 header
+.section .multiboot2, "ax"
+.align 8
+multiboot2_header:
+	.long MULTIBOOT2_HEADER_MAGIC
+	.long MULTIBOOT2_HEADER_ARCH_I386
+	.long multiboot2_header_end - multiboot2_header
+	.long -(MULTIBOOT2_HEADER_MAGIC + MULTIBOOT2_HEADER_ARCH_I386 + (multiboot2_header_end - multiboot2_header))
 
 	tag_info_start:
-		dw 1 ; info tag
-		dw 0
-		dd (tag_info_end - tag_info_start)
-		dd 3 ; module info
-		dd 6 ; memory map
+		.word MULTIBOOT2_TAG_INFO_REQ
+		.word MULTIBOOT2_INFO_REQUIRED
+		.long (tag_info_end - tag_info_start)
+		.long MULTIBOOT2_TAG_MODULE
+		.long MULTIBOOT2_TAG_MODULE_ALIGN
 	tag_info_end:
 
 	tag_align_start:
-		dw 6 ; alignment tag
-		dw 0
-		dd (tag_align_end - tag_align_start)
+		.word MULTIBOOT2_TAG_MODULE_ALIGN
+		.word MULTIBOOT2_INFO_REQUIRED
+		.long (tag_align_end - tag_align_start)
 	tag_align_end:
 
 	tag_term_start:
-		dw 0 ; terminator tag
-		dw 0
-		dd (tag_term_end - tag_term_start)
+		.word MULTIBOOT2_TAG_TERMINATOR
+		.word MULTIBOOT2_INFO_REQUIRED
+		.long ( tag_term_end - tag_term_start )
 	tag_term_end:
-header_end:
 
+multiboot2_header_end:
 
-; initial paging structures
-align PAGE_SIZE
-global pml4
-pml4:
-	dq (pml3l + PAGE_PRESENT + PAGE_WRITABLE)
-	times (PAGE_TABLES - 4) dq 0
-	dq (identity_pml3 + PAGE_PRESENT + PAGE_WRITABLE)
-	dq (pml4 + PAGE_PRESENT + PAGE_WRITABLE + PAGE_NEXEC)
-	dq (pml3h + PAGE_PRESENT + PAGE_WRITABLE)
-
-pml3l:
-	dq (pml2 + PAGE_PRESENT + PAGE_WRITABLE)
-	dq 0
-	times (PAGE_TABLES - 2) dq 0
-
-pml3h:
-	times (PAGE_TABLES - 2) dq 0
-	dq (pml2 + PAGE_PRESENT + PAGE_WRITABLE)
-	dq 0
-
-pml2:
-	dq (0x0 + PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG)
-	times (PAGE_TABLES - 1) dq 0
-
-identity_pml3:
-	times (PAGE_TABLES - 5) dq 0
-	dq (pmm_stack_pml2 + PAGE_PRESENT + PAGE_WRITABLE)
-	dq (identity_pml2a + PAGE_PRESENT + PAGE_WRITABLE)
-	dq (identity_pml2b + PAGE_PRESENT + PAGE_WRITABLE)
-	dq (identity_pml2c + PAGE_PRESENT + PAGE_WRITABLE)
-	dq (identity_pml2d + PAGE_PRESENT + PAGE_WRITABLE)
-
-pmm_stack_pml2:
-	times (PAGE_TABLES - 1) dq 0
-	dq (pmm_stack_pml1 + PAGE_PRESENT + PAGE_WRITABLE)
-
-pmm_stack_pml1:
-	times PAGE_TABLES dq 0
-
-identity_pml2a:
-	%assign pg 0
-	%rep PAGE_TABLES
-		dq (pg + PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG + PAGE_NEXEC)
-		%assign pg pg+PAGE_SIZE*PAGE_TABLES
-	%endrep
-
-identity_pml2b:
-	%rep PAGE_TABLES
-		dq (pg + PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG + PAGE_NEXEC)
-		%assign pg pg+PAGE_SIZE*PAGE_TABLES
-	%endrep
-
-identity_pml2c:
-	%rep PAGE_TABLES
-		dq (pg + PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG + PAGE_NEXEC)
-		%assign pg pg+PAGE_SIZE*PAGE_TABLES
-	%endrep
-
-identity_pml2d:
-	%rep PAGE_TABLES
-		dq (pg + PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG + PAGE_NEXEC)
-		%assign pg pg+PAGE_SIZE*PAGE_TABLES
-	%endrep
-
-
-
-; the global descriptor table
+// initial gdt
 gdt:
-	; null selector
-    dq 0
-	; cs selector
-    dq 0x00AF98000000FFFF
-	; ds selector
-    dq 0x00CF92000000FFFF
+	# null descriptor
+	gdt_null:
+	.word 0
+	.word 0
+	.byte 0
+	.byte 0
+	.byte 0
+	.byte 0
+	# null descriptor
+	gdt_unused:
+	.word 0
+	.word 0
+	.byte 0
+	.byte 0
+	.byte 0
+	.byte 0
+	# code descriptor
+	gdt_code:
+	.word 0xffff
+	.word 0
+	.byte 0
+	.byte 0x9a
+	.byte 0xaf
+	.byte 0
+	# data descriptor
+	gdt_data:
+	.word 0xffff
+	.word 0
+	.byte 0
+	.byte 0x92
+	.byte 0x8f
+	.byte 0
+	gdt_pointer:
+	.word gdt_pointer - gdt - 1
+	.long gdt
+	.long 0
 gdt_end:
-	dq 0 ; some extra padding so the gdtr is 16-byte aligned
-gdtr:
-	dw gdt_end - gdt - 1
-	dq gdt
 
 
-; the entry point of the kernel executable
-global kernel_entry
+// the entry point of the kernel executable
+.global kernel_entry
 kernel_entry:
-	; move the info GRUB passes us into the registers used for the main() call
-	; later on
-	mov edi, eax
-	mov esi, ebx
+xchg %BX, %BX
+	cli
+	cld
+	// move the multiboot info grub passes us into registers used for the main() call
+	mov %eax, %edi
+	mov %ebx, %esi
 
-	; enable PAE and PSE
-	mov eax, cr4
-	or eax, (0x20 + 0x10)
-	mov cr4, eax
+	// enable PAE and PSE
+	mov %cr4, %eax
+	orl (0x20 + 0x10), %eax
+	mov %eax, %cr4
 
-	; enable long mode and the NX bit
-	mov ecx, 0xC0000080
+	// enable long mode and the nx bit
+	mov $0xC0000080, %ecx
 	rdmsr
-	or eax, (0x100 + 0x800)
+	or (0x100 + 0x800), %eax
 	wrmsr
 
-	; set cr3 to a pointer to pml4
-	mov eax, pml4
-	mov cr3, eax
+	// enable paging and enter long mode
+	mov %cr0, %eax
+	orl $0x80000000, %eax
+	mov %eax, %cr0
 
-	; enable paging
-	mov eax, cr0
-	or eax, 0x80000000
-	mov cr0, eax
+	// load initial gdt
+	#lgdtl gdt_pointer
 
-	; leave compatibility mode
-	lgdt [gdtr]
-	mov ax, 0x10
-	mov ss, ax
-	mov ax, 0x0
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
+	mov $0x10, %ax
+	mov %ax, %ss
+	mov $0x0, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
 
-	jmp 0x08:.trampoline
+	ljmp $0x10, $trampoline
 
-; some 64-bit code in the lower half used to jump to the higher half
-bits 64
-.trampoline:
-	; enter the higher half
-	mov rax, qword .next
-	jmp rax
+// 64-bit code in the lower half used to jump to the higher half
+.code64
+trampoline:
+	// enter the higher half
+	mov .next, %rax
+	jmp *%rax
 
-; the higher-half code
-section .inith
+// finally the higher-half code
+.section .kinit
 .next:
-	; re-load the GDTR with a virtual base address
-	mov rax, [gdtr + 2]
-	mov rbx, KERNEL_VMA
-	add rax, rbx
-	mov [gdtr + 2], rax
-	mov rax, gdtr + KERNEL_VMA
-	lgdt [rax]
 
-	; map the rest of the kernel into virtual memory
-	mov rax, _start - KERNEL_VMA      ; first page number
-	shr rax, 12 + 9
-	mov rbx, _end - KERNEL_VMA        ; last page number
-	shr rbx, 12 + 9
-	mov rcx, pml2 + KERNEL_VMA   ; pointer into pml2 table
-	.map_page:
 
-    ; calculate the value of the page table entry
-    mov rdx, rax
-    shl rdx, 12 + 9
-    mov r8, rdx
-    mov r9, KERNEL_VMA
-    add r8, r9
-    or rdx, PAGE_PRESENT + PAGE_WRITABLE + PAGE_BIG
-
-    ; write the page table entry
-    mov [rcx], rdx
-    invlpg [r8]
-
-    ; increment pml2 pointer
-    add rcx, 8
-
-    ; check if we should terminate the loop
-    cmp rax, rbx
-    je .map_page_end
-
-    ; increment the counter and map the next page
-    inc rax
-    jmp .map_page
-	.map_page_end:
-
-	; set up the new stack (multiboot2 spec says the stack pointer could be
-	; anything - even pointing to invalid memory)
-	mov rbp, 0
-	mov rsp, qword stack + STACK_SIZE
-
-	; unmap the identity-mapped memory
-	mov qword [pml4], 0x0
-
-	; invalidate the TLB cache for the identity-mapped memory
-	invlpg [0x0]
-
-	; clear the RFLAGS register
-	push 0x0
+	// clear the RFLAGS register
+	push $0x0
 	popf
 
-	; call the kernel
-	; - the arguments were moved into EDI and ESI at the start
-	; - the DF has been reset by the code above - no CLD is required
+	// call kernel
 	call kmain
 
+	cli
+
+halt:
+	hlt
+	jmp halt
+
  
-; memory reserved for the kernel's stack
-section .bss
-align 16
+// memory reserved for the kernel's stack
+.section .bss
+.align 16
 stack:
-	resb STACK_SIZE
+	.space STACK_SIZE

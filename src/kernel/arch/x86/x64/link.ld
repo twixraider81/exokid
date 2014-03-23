@@ -2,7 +2,7 @@ OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(kernel_entry)
 
 PAGE_SIZE	= 0x1000;
-KERNEL_VMA	= 0xffffffff80000000;
+KERNEL_VMA	= 0xFFFFFFFF80000000;
 
 SECTIONS
 {
@@ -11,9 +11,9 @@ SECTIONS
 
 	_start = . + KERNEL_VMA;
 
-	.init :
+	.multiboot2 : AT(ADDR(.multiboot2))
 	{
-		*(.initl)
+		*(.multiboot2)
 	}
 
 	. += KERNEL_VMA;
@@ -21,7 +21,7 @@ SECTIONS
 
 	.text ALIGN(PAGE_SIZE) : AT(ADDR(.text) - KERNEL_VMA)
 	{
-		*(.inith)
+		*(.kinit)
 		*(.text)
 		*(.gnu.linkonce.t*)
 	}

@@ -6,9 +6,9 @@ PAGE_SIZE	= 0x1000;
 SECTIONS
 {
     . = 0x100000;
-
-    _kernelLMA = .;
     _start = .;
+ 
+    _kernelLMA = .;
     _kernelVMA = .;
 
     .text :

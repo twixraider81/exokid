@@ -84,25 +84,25 @@ isrStub:
 	push %edi
 	push %ebp
 
-	movl %ds, %ax
+	mov %ds, %ax
 	push %eax
 
-	movl $0x10, %ax
-	movl %ax, %ds
-	movl %ax, %es
-	movl %ax, %fs
-	movl %ax, %gs
-	movl %ax, %ss
+	mov $0x10, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+	mov %ax, %ss
 
 	movl %esp, %edi
 
 	call isrHandler
 
 	pop %eax
-	movl %ax, %ds
-	movl %ax, %es
-	movl %ax, %fs
-	movl %ax, %gs
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
 
 	pop %ebp
 	pop %edi

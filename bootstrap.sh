@@ -292,6 +292,6 @@ cd "$DIR"
 
 # fetch waf
 if [ ! -f "waf" ]; then
-	curl -v -o "$DIR/waf" "http://waf.googlecode.com/files/waf-1.7.13"
+	curl -v -o "$DIR/waf" "http://waf.googlecode.com/files/waf-1.7.15"
 	chmod a+rx "$DIR/waf"
 fi
