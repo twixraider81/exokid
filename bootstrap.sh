@@ -20,7 +20,6 @@ DIR=`pwd`
 UNAME=`uname -s | grep -m1 -ioE '[a-z]+' | awk 'NR==1{print $0}'` # detection of OS
 CROSSDIR="$DIR/cc/$UNAME" # crosstools dir
 
-KEEP=0 # keep stuff or not
 WIN=0
 BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf, "x86_64-pc-elf i686-pc-elf aarch64-none-elf"
 BUILDBACKENDS="gdc" # gdc, "gdc ldc dmd"
@@ -29,9 +28,6 @@ while getopts "ckva:b:" opt; do
 	case "$opt" in
 		a) # select architectures to build
 			BUILDARCHS=${OPTARG,,}
-		;;
-		k) # keep downloaded archives
-			KEEP=1
 		;;
 		c) # clean build tools dir
 			rm -rf $CROSSDIR/binutils-*
@@ -126,7 +122,7 @@ for BUILDARCH in $BUILDARCHS; do
 
 		# fetch gcc
 		if [ ! -d "$GCCSRCDIR" ]; then
-			test -f "$GCCARCHIVE" || curl -v -o "$GCCARCHIVE" "ftp://ftp.gnu.org/gnu/gcc/gcc-4.8.2/gcc-4.8.2.tar.bz2"
+			test -f "$GCCARCHIVE" || curl -v -o "$GCCARCHIVE" "http://ftp.gnu.org/gnu/gcc/gcc-4.8.2/gcc-4.8.2.tar.bz2"
 			tar -xjf "$GCCARCHIVE" -C "$CROSSDIR"
 		fi
 
@@ -140,7 +136,7 @@ for BUILDARCH in $BUILDARCHS; do
 
 		# fetch gmp
 		if [ ! -d "$GCCSRCDIR/gmp" ]; then
-			curl -v -o "$GCCSRCDIR/gmp-5.1.3.tar.bz2" "ftp://ftp.gmplib.org/pub/gmp-5.1.3/gmp-5.1.3.tar.bz2"
+			curl -v -o "$GCCSRCDIR/gmp-5.1.3.tar.bz2" "https://gmplib.org/download/gmp/gmp-5.1.3.tar.bz2"
 			tar -xjf "$GCCSRCDIR/gmp-5.1.3.tar.bz2" -C "$GCCSRCDIR"
 			mv "$GCCSRCDIR/gmp-5.1.3" "$GCCSRCDIR/gmp"
 			rm "$GCCSRCDIR/gmp-5.1.3.tar.bz2"
@@ -156,10 +152,10 @@ for BUILDARCH in $BUILDARCHS; do
 
 		# fetch mpc
 		if [ ! -d "$GCCSRCDIR/mpc" ]; then
-			curl -v -o "$GCCSRCDIR/mpc-1.0.1.tar.gz" "http://www.multiprecision.org/mpc/download/mpc-1.0.1.tar.gz"
-			tar -xzf "$GCCSRCDIR/mpc-1.0.1.tar.gz" -C "$GCCSRCDIR"
-			mv "$GCCSRCDIR/mpc-1.0.1" "$GCCSRCDIR/mpc"
-			rm "$GCCSRCDIR/mpc-1.0.1.tar.gz"
+			curl -v -o "$GCCSRCDIR/mpc-1.0.2.tar.gz" "http://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz"
+			tar -xzf "$GCCSRCDIR/mpc-1.0.2.tar.gz" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/mpc-1.0.2" "$GCCSRCDIR/mpc"
+			rm "$GCCSRCDIR/mpc-1.0.2.tar.gz"
 		fi
 
 		# fetch gdc
@@ -274,24 +270,11 @@ if [[ ! -f "$MTOOLS"  && $WIN -eq 1 ]]; then
 	make install
 fi
 
-
-if [ $KEEP -eq 0 ]; then
-	rm -rf $CROSSDIR/binutils-*
-	rm -rf $CROSSDIR/gcc-*
-	rm -rf $CROSSDIR/gdc
-	rm -rf $CROSSDIR/gdb-*
-	rm -rf $CROSSDIR/ldc
-	rm -rf $CROSSDIR/bochs-*
-	rm -rf $CROSSDIR/mtools-*
-	rm -rf $CROSSDIR/llvm*
-	rm -rf $CROSSDIR/dmd
-fi
-
-
+# done
 cd "$DIR"
 
 # fetch waf
 if [ ! -f "waf" ]; then
-	curl -v -o "$DIR/waf" "http://waf.googlecode.com/files/waf-1.7.15"
+	curl -v -o "$DIR/waf" "https://waf.googlecode.com/files/waf-1.7.15"
 	chmod a+rx "$DIR/waf"
 fi
