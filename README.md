@@ -24,6 +24,7 @@ this moment.
 - -c : force cleanup (delete downloaded folders)
 - -k : keep downloaded archives
 - -b : choose which backends to build, defaults to gdc. i.e. (gdc | "gdc ldc dmd")
+- -t : number of concurrent threads during compile time, defaults to number of available procs
 - -v : verbose, print what the script is doing
 
 This will take a serious amount of time (and disk space), please be patient.
@@ -34,7 +35,7 @@ For Cygwin build ldc and dmd are not available. They will only build with a few 
 (Clang exception linking & WIN32 defines, configuring libconfig build system etc.)
 
 For ldc your system will need libconfig++-dev.
-For Bochs you will need libx11-dev & libgtk2.0-dev.
+For Bochs you will need libx11-dev, libgtk2.0-dev, libncurses5-dev.
 
 
 Windows note:
