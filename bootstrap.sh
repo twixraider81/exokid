@@ -33,8 +33,8 @@ while getopts "ckva:b:" opt; do
 		c) # clean build tools dir
 			rm -vrf $CROSSDIR
 			rm -vf "$DIR/waf"
-			rm -rf $DIR/.lock-*
-			rm -rf $DIR/.waf-*
+			rm -vrf $DIR/.lock-*
+			rm -vrf $DIR/.waf-*
 			exit 0
 		;;
 		b) # compiler backend to build
@@ -229,7 +229,7 @@ for BUILDARCH in $BUILDARCHS; do
 	
 				mkdir -p "$CROSSDIR/llvm-build"
 				cd "$CROSSDIR/llvm-build"
-				../llvm/configure --prefix="$CROSSDIR" --enable-optimized --enable-debug-symbols --enable-debug-runtime
+				../llvm/configure --prefix="$CROSSDIR" --enable-optimized --enable-debug-symbols --enable-debug-runtime --enable-debug-symbols --enable-keep-symbols --enable-backtraces
 	
 				make -j$T
 				make install
@@ -290,6 +290,7 @@ if [[ ! -f "$BOCHS"  && $WIN -eq 0 ]]; then
 
 	if [ ! -d "$CROSSDIR/bochs-2.6.8" ]; then
 		tar -xzf "$CROSSDIR/bochs-2.6.8.tar.gz" -C "$CROSSDIR"
+		rm "$CROSSDIR/bochs-2.6.8.tar.gz"
 		cd "$CROSSDIR/bochs-2.6.8"
 #		patch -p1 < ../../../support/bochs.patch
 	fi
@@ -309,6 +310,7 @@ if [[ ! -f "$MTOOLS"  ]]; then
 
 	if [ ! -d "$CROSSDIR/mtools-4.0.18" ]; then
 		tar -xjf "$CROSSDIR/mtools-4.0.18.tar.bz2" -C "$CROSSDIR"
+		rm "$CROSSDIR/mtools-4.0.18.tar.bz2"
 		cd "$CROSSDIR/mtools-4.0.18"
 		#patch -p1 < ../../../support/mtools.patch
 	fi

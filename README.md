@@ -4,7 +4,7 @@ exokid - an EXOkernel In D
 
 Quickstart
 ----------
-- ./bootstrap.sh
+- ./bootstrap.sh or ( ./bootstrap.sh -va "x86_64-pc-elf i686-pc-elf aarch64-none-elf" -b "gdc ldc dmd" )
 - ./waf configure
 - ./waf build:x64
 
@@ -22,7 +22,6 @@ this moment.
 - ./bootstrap.sh -av "x86_64-pc-elf i686-pc-elf"
 - -a : cross compiler architecture to build, defaults to x86_64-pc-elf. i.e. (x86_64-pc-elf | "x86_64-pc-elf i686-pc-elf aarch64-none-elf")
 - -c : force cleanup (delete downloaded folders)
-- -k : keep downloaded archives
 - -b : choose which backends to build, defaults to gdc. i.e. (gdc | "gdc ldc dmd")
 - -t : number of concurrent threads during compile time, defaults to number of available procs
 - -v : verbose, print what the script is doing
@@ -42,6 +41,7 @@ Windows note:
 You will need Cygwin and add the path to your Cygwin\bin, Qemu and Python installtion path to
 your systems environment path variable.
 Please note that ifyou will need a Cygwin Python, not the Windows native one.
+ToDo: KVM, VirtualBox, Qemu Tests
 
 
 After the bootstrap script completed, go ahead configure & build the sources.
@@ -62,12 +62,6 @@ Edit a configuration and modify the PYTHON variable according to your system aga
 You should create debug configuration for a c/c++ remote application, with the manual gdb remote launcher and
 select port 1234 in connection settings. Start a Qemu build and point the configuration to the appropriate kernel.bin.
 
-
-Background
-----------
-We all seek for new challenges from time to time. For me it is to get into OS
-development. This project is my first project in D as well as my first lowlevel project,
-so please bear with me...
 
 
 Credits & thanks
