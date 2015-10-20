@@ -6,6 +6,11 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<name>org.python.pydev.PyDevBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<arguments>
 				<dictionary>
@@ -64,20 +69,21 @@
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.dsource.ddt.ide.core.nature</nature>
 		<nature>org.eclipse.cdt.codan.core.codanNature</nature>
+		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1386547706984</id>
-			<name>build</name>
-			<type>30</type>
+			<id>1396616804184</id>
+			<name></name>
+			<type>26</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-*</arguments>
+				<arguments>1.0-name-matches-false-false-cc</arguments>
 			</matcher>
 		</filter>
 		<filter>
-			<id>1386407581999</id>
-			<name>cc</name>
+			<id>1386547706984</id>
+			<name>build</name>
 			<type>30</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
