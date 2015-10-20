@@ -23,6 +23,7 @@ CROSSDIR="$DIR/cc/$UNAME" # crosstools dir
 WIN=0
 BUILDARCHS="x86_64-pc-elf" # x86_64-pc-elf, "x86_64-pc-elf i686-pc-elf aarch64-none-elf"
 BUILDBACKENDS="gdc" # gdc, "gdc ldc dmd"
+THREADS=`nproc`
 
 while getopts "ckva:b:" opt; do
 	case "$opt" in
@@ -30,19 +31,17 @@ while getopts "ckva:b:" opt; do
 			BUILDARCHS=${OPTARG,,}
 		;;
 		c) # clean build tools dir
-			rm -rf $CROSSDIR/binutils-*
-			rm -rf $CROSSDIR/gcc-*
-			rm -rf $CROSSDIR/gdc
-			rm -rf $CROSSDIR/gdb-*
-			rm -rf $CROSSDIR/ldc
-			rm -rf $CROSSDIR/bochs-*
-			rm -rf $CROSSDIR/mtools-*
-			rm -rf $CROSSDIR/llvm*
-			rm -rf $CROSSDIR/dmd
+			rm -vrf $CROSSDIR
+			rm -vf "$DIR/waf"
+			rm -vrf $DIR/.lock-*
+			rm -vrf $DIR/.waf-*
 			exit 0
 		;;
 		b) # compiler backend to build
 			BUILDBACKENDS=${OPTARG,,}
+		;;
+		t) # set thread count
+			THREADS=${OPTARG,,}
 		;;
 		v) # set verbosity
 			set -x
@@ -85,23 +84,30 @@ if [ ! -f "$CROSSDIR/bin/" ]; then
 fi
 
 
+# thread count
+let THREADS=$THREADS*2+1
+
+
 # build cross compile tools
 for BUILDARCH in $BUILDARCHS; do
 	LD="$CROSSDIR/bin/$BUILDARCH-ld"
 	GCC="$CROSSDIR/bin/$BUILDARCH-gcc"
+	CLANG="$CROSSDIR/bin/clang"
 	LDC="$CROSSDIR/bin/ldc2"
 	DMD="$CROSSDIR/bin/dmd"
 	BOCHS="$CROSSDIR/bin/bochs"
 
+	# binutils
 	if [ ! -f "$LD" ]; then
-		BINSRCDIR="$CROSSDIR/binutils-2.24"
-		BINARCHIVE="$CROSSDIR/binutils-2.24.tar.bz2"
-		BINBUILD="$CROSSDIR/binutils-2.24-$BUILDARCH"
+		BINSRCDIR="$CROSSDIR/binutils-2.25"
+		BINARCHIVE="$CROSSDIR/binutils-2.25.tar.bz2"
+		BINBUILD="$CROSSDIR/binutils-2.25-$BUILDARCH"
 
 		# fetch binutils
 		if [ ! -d "$BINSRCDIR" ]; then
-			test -f "$BINARCHIVE" || curl -v -o "$BINARCHIVE" "http://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.bz2"
+			test -f "$BINARCHIVE" || curl -v -o "$BINARCHIVE" "http://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.bz2"
 			tar -xjf "$BINARCHIVE" -C "$CROSSDIR"
+			rm -f "$BINARCHIVE"
 		fi
 
 		mkdir -p "$BINBUILD"
@@ -109,21 +115,24 @@ for BUILDARCH in $BUILDARCHS; do
 		export TARGET="$BUILDARCH"
 
 		cd "$BINBUILD"
-		../binutils-2.24/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --enable-64-bit-bfd
+		../binutils-2.25/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --disable-werror
 
-		make all
+		make -j$THREADS all
 		make install
 	fi
 
+
+	# cross gcc
 	if [ ! -f "$GCC" ]; then
-		GCCSRCDIR="$CROSSDIR/gcc-4.8.2"
-		GCCARCHIVE="$CROSSDIR/gcc-4.8.2.tar.bz2"
-		GCCBUILD="$CROSSDIR/gcc-4.8.2-$BUILDARCH"
+		GCCSRCDIR="$CROSSDIR/gcc-5.2.0"
+		GCCARCHIVE="$CROSSDIR/gcc-5.2.0.tar.bz2"
+		GCCBUILD="$CROSSDIR/gcc-5.2.0-$BUILDARCH"
 
 		# fetch gcc
 		if [ ! -d "$GCCSRCDIR" ]; then
-			test -f "$GCCARCHIVE" || curl -v -o "$GCCARCHIVE" "http://ftp.gnu.org/gnu/gcc/gcc-4.8.2/gcc-4.8.2.tar.bz2"
+			test -f "$GCCARCHIVE" || curl -v -o "$GCCARCHIVE" "https://ftp.gnu.org/gnu/gcc/gcc-5.2.0/gcc-5.2.0.tar.bz2"
 			tar -xjf "$GCCARCHIVE" -C "$CROSSDIR"
+			rm -f "$GCCARCHIVE"
 		fi
 
 		# fetch iconv
@@ -136,26 +145,42 @@ for BUILDARCH in $BUILDARCHS; do
 
 		# fetch gmp
 		if [ ! -d "$GCCSRCDIR/gmp" ]; then
-			curl -v -o "$GCCSRCDIR/gmp-5.1.3.tar.bz2" "https://gmplib.org/download/gmp/gmp-5.1.3.tar.bz2"
-			tar -xjf "$GCCSRCDIR/gmp-5.1.3.tar.bz2" -C "$GCCSRCDIR"
-			mv "$GCCSRCDIR/gmp-5.1.3" "$GCCSRCDIR/gmp"
-			rm "$GCCSRCDIR/gmp-5.1.3.tar.bz2"
+			curl -v -o "$GCCSRCDIR/gmp-6.0.0a.tar.bz2" "https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2"
+			tar -xjf "$GCCSRCDIR/gmp-6.0.0a.tar.bz2" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/gmp-6.0.0" "$GCCSRCDIR/gmp"
+			rm "$GCCSRCDIR/gmp-6.0.0a.tar.bz2"
 		fi
 	
 		# fetch mpfr
 		if [ ! -d "$GCCSRCDIR/mpfr" ]; then
-			curl -v -o "$GCCSRCDIR/mpfr-3.1.2.tar.bz2" "http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.bz2"
-			tar -xjf "$GCCSRCDIR/mpfr-3.1.2.tar.bz2" -C "$GCCSRCDIR"
-			mv "$GCCSRCDIR/mpfr-3.1.2" "$GCCSRCDIR/mpfr"
-			rm "$GCCSRCDIR/mpfr-3.1.2.tar.bz2"
+			curl -v -o "$GCCSRCDIR/mpfr-3.1.3.tar.bz2" "http://www.mpfr.org/mpfr-current/mpfr-3.1.3.tar.bz2"
+			tar -xjf "$GCCSRCDIR/mpfr-3.1.3.tar.bz2" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/mpfr-3.1.3" "$GCCSRCDIR/mpfr"
+			rm "$GCCSRCDIR/mpfr-3.1.3.tar.bz2"
 		fi
 
 		# fetch mpc
 		if [ ! -d "$GCCSRCDIR/mpc" ]; then
-			curl -v -o "$GCCSRCDIR/mpc-1.0.2.tar.gz" "http://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz"
-			tar -xzf "$GCCSRCDIR/mpc-1.0.2.tar.gz" -C "$GCCSRCDIR"
-			mv "$GCCSRCDIR/mpc-1.0.2" "$GCCSRCDIR/mpc"
-			rm "$GCCSRCDIR/mpc-1.0.2.tar.gz"
+			curl -v -o "$GCCSRCDIR/mpc-1.0.3.tar.gz" "http://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz"
+			tar -xzf "$GCCSRCDIR/mpc-1.0.3.tar.gz" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/mpc-1.0.3" "$GCCSRCDIR/mpc"
+			rm "$GCCSRCDIR/mpc-1.0.3.tar.gz"
+		fi
+
+		# fetch isl
+		if [ ! -d "$GCCSRCDIR/isl" ]; then
+			curl -v -o "$GCCSRCDIR/isl-0.14.tar.bz2" "ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-0.14.tar.bz2"
+			tar -xjf "$GCCSRCDIR/isl-0.14.tar.bz2" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/isl-0.14" "$GCCSRCDIR/isl"
+			rm "$GCCSRCDIR/isl-0.14.tar.bz2"
+		fi
+
+		# fetch cloog
+		if [ ! -d "$GCCSRCDIR/cloog" ]; then
+			curl -v -o "$GCCSRCDIR/cloog-0.18.1.tar.gz" "ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-0.18.1.tar.gz"
+			tar -xzf "$GCCSRCDIR/cloog-0.18.1.tar.gz" -C "$GCCSRCDIR"
+			mv "$GCCSRCDIR/cloog-0.18.1" "$GCCSRCDIR/cloog"
+			rm "$GCCSRCDIR/cloog-0.18.1.tar.gz"
 		fi
 
 		# fetch gdc
@@ -164,44 +189,53 @@ for BUILDARCH in $BUILDARCHS; do
 			cd "$CROSSDIR"
 			git clone https://github.com/D-Programming-GDC/GDC.git "$CROSSDIR/gdc/dev"
 			cd "$CROSSDIR/gdc/dev"
-			git checkout gdc-4.8
+			git checkout gdc-5
 			$CROSSDIR/gdc/dev/setup-gcc.sh "$GCCSRCDIR"
 		fi
 
 
+		# build
 		mkdir -p "$GCCBUILD"
 		export PREFIX="$CROSSDIR"
 		export TARGET="$BUILDARCH"
 
 		cd "$GCCBUILD"
-		../gcc-4.8.2/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --enable-languages=c,c++,d --without-headers --disable-libphobos
+		../gcc-5.2.0/configure --target="$BUILDARCH" --prefix="$CROSSDIR" --disable-nls --disable-werror --enable-languages=c,c++,d --without-headers --disable-libphobos
 
-		make all-gcc
+		make -j$THREADS all-gcc
+		make -j$THREADS all-target-libgcc
 		make install-gcc
+		make install-target-libgcc
 	fi
 
 
-	if [[ ! -f "$LDC" && $BUILDBACKENDS =~ "ldc" && $WIN -eq 0 ]]; then
+	# ldc and perhaps llvm/clang
+	if [[ ! -f "$LDC" && $BUILDBACKENDS =~ "ldc" ]]; then
 		cd "$CROSSDIR"
+		
+		let T=($THREADS-1)/2
 
-		# build llvm/clang first if needed
+		# build clang first, this can take a looong time. and memory.
 		if ! which "clang"; then
-			cd "$CROSSDIR"
-			test -d "$CROSSDIR/llvm" || svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
-			cd "$CROSSDIR/llvm/tools"
-			test -d "$CROSSDIR/llvm/tools/clang" || svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-			cd "$CROSSDIR/llvm/tools/clang/tools"
-			test -d "$CROSSDIR/llvm/tools/clang/tools/extra" || svn co http://llvm.org/svn/llvm-project/clang-tools-extra/trunk extra
-			cd "$CROSSDIR/llvm/projects" 
-			test -d "$CROSSDIR/llvm/projects/compiler-rt" || svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
-
-			mkdir -p "$CROSSDIR/llvm-build"
-			../llvm/configure --enable-optimized
-
-			make
-			make install
-
-			cd "$CROSSDIR"
+			if [ ! -f "$CLANG" ]; then
+				cd "$CROSSDIR"
+				test -d "$CROSSDIR/llvm" || svn co http://llvm.org/svn/llvm-project/llvm/branches/release_37 llvm
+				cd "$CROSSDIR/llvm/tools"
+				test -d "$CROSSDIR/llvm/tools/clang" || svn co http://llvm.org/svn/llvm-project/cfe/branches/release_37 clang
+				cd "$CROSSDIR/llvm/tools/clang/tools"
+				test -d "$CROSSDIR/llvm/tools/clang/tools/extra" || svn co http://llvm.org/svn/llvm-project/clang-tools-extra/branches/release_37 extra
+				cd "$CROSSDIR/llvm/projects" 
+				test -d "$CROSSDIR/llvm/projects/compiler-rt" || svn co http://llvm.org/svn/llvm-project/compiler-rt/branches/release_37 compiler-rt
+	
+				mkdir -p "$CROSSDIR/llvm-build"
+				cd "$CROSSDIR/llvm-build"
+				../llvm/configure --prefix="$CROSSDIR" --enable-optimized --enable-debug-symbols --enable-debug-runtime --enable-debug-symbols --enable-keep-symbols --enable-backtraces
+	
+				make -j$T
+				make install
+	
+				cd "$CROSSDIR"
+			fi
 		fi
 
 		LDCBUILD="$CROSSDIR/ldc/build-$BUILDARCH"
@@ -212,51 +246,73 @@ for BUILDARCH in $BUILDARCHS; do
 		export PREFIX="$CROSSDIR"
 		export TARGET="$BUILDARCH"
 
-		cd "$LDCBUILD"
-
-		cmake .. -DCMAKE_INSTALL_PREFIX="$CROSSDIR" -DINCLUDE_INSTALL_DIR="$CROSSDIR/include"
-		make
-		make install
-	fi
-
-
-	if [[ ! -f "$DMD" && $BUILDBACKENDS =~ "dmd" && $WIN -eq 0 ]]; then
-		cd "$CROSSDIR"
-		test -d "$CROSSDIR/dmd" || git clone --recursive https://github.com/D-Programming-Language/dmd.git
-
-		cd "$CROSSDIR/dmd"
-		make -f posix.mak MODEL=64 TARGET_CPU=X86
-		cp src/dmd "$CROSSDIR/bin/dmd"
-		cp src/dmd.conf.default "$CROSSDIR/bin/dmd.conf"
-	fi
-
-
-	if [[ ! -f "$BOCHS"  && $WIN -eq 0 ]]; then
-		cd "$CROSSDIR"
-		test -f "$CROSSDIR/bochs-2.6.2.tar.gz" || curl -v -o "$CROSSDIR/bochs-2.6.2.tar.gz" -L http://downloads.sourceforge.net/project/bochs/bochs/2.6.2/bochs-2.6.2.tar.gz
-
-		if [ ! -d "$CROSSDIR/bochs-2.6.2" ]; then
-			tar -xzf "$CROSSDIR/bochs-2.6.2.tar.gz" -C "$CROSSDIR"
-			cd "$CROSSDIR/bochs-2.6.2"
-			patch -p1 < ../../../support/bochs.patch
+		if ! which "clang"; then
+			if [ -f "$CLANG" ]; then
+				LLVMCONFIG="$CROSSDIR/bin/llvm-config"
+			else
+				LLVMCONFIG=`which llvm-config`
+			fi
 		fi
 
-		cd "$CROSSDIR/bochs-2.6.2"
-		./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16=dummy --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
 
-		make
+		cd "$LDCBUILD"
+
+		cmake .. -DLLVM_CONFIG="$LLVMCONFIG" -DCMAKE_INSTALL_PREFIX="$CROSSDIR" -DCONF_INST_DIR="$CROSSDIR/local/etc" -DINCLUDE_INSTALL_DIR="$CROSSDIR/include" -DLLVM_INTRINSIC_TD_PATH=`$LLVMCONFIG --includedir`"/llvm/IR" -L
+
+		make -j$THREADS
 		make install
+	fi
+
+
+	# dmd
+	if [[ ! -f "$DMD" && $BUILDBACKENDS =~ "dmd" ]]; then
+		cd "$CROSSDIR"
+		
+		if [[ ! -d "$CROSSDIR/dmd" ]]; then
+			git clone --recursive https://github.com/D-Programming-Language/dmd.git
+			cd "$CROSSDIR/dmd"
+			git checkout stable	
+		fi
+
+		cd "$CROSSDIR/dmd"
+
+		make -j$THREADS -f posix.mak MODEL=64 TARGET_CPU=X86 AUTO_BOOTSTRAP=1
+		cp src/dmd "$CROSSDIR/bin/dmd"
+		cp ini/linux/bin64/dmd.conf "$CROSSDIR/bin/dmd.conf"
 	fi
 done
 
+
+# bochs
+if [[ ! -f "$BOCHS"  && $WIN -eq 0 ]]; then
+	cd "$CROSSDIR"
+	test -f "$CROSSDIR/bochs-2.6.8.tar.gz" || curl -v -o "$CROSSDIR/bochs-2.6.8.tar.gz" -L http://downloads.sourceforge.net/project/bochs/bochs/2.6.8/bochs-2.6.8.tar.gz
+
+	if [ ! -d "$CROSSDIR/bochs-2.6.8" ]; then
+		tar -xzf "$CROSSDIR/bochs-2.6.8.tar.gz" -C "$CROSSDIR"
+		rm "$CROSSDIR/bochs-2.6.8.tar.gz"
+		cd "$CROSSDIR/bochs-2.6.8"
+#		patch -p1 < ../../../support/bochs.patch
+	fi
+
+	cd "$CROSSDIR/bochs-2.6.8"
+	./configure --disable-plugins --enable-x86-64 --enable-smp --enable-cpu-level=6 --enable-large-ramfile --enable-ne2000 --enable-pci --enable-usb --enable-usb-ohci --enable-e1000 --enable-debugger --enable-disasm --enable-debugger-gui --enable-iodebug --enable-all-optimizations --enable-logging --enable-fpu --enable-vmx --enable-svm --enable-avx --enable-x86-debugger --enable-cdrom --enable-sb16=dummy --disable-docbook --with-x --with-x11 --with-term --prefix="$CROSSDIR"
+
+	make -j$THREADS
+	make install
+fi
+
+
+# mtools
 MTOOLS="$CROSSDIR/bin/mtools"
-if [[ ! -f "$MTOOLS"  && $WIN -eq 1 ]]; then
+if [[ ! -f "$MTOOLS"  ]]; then
 	test -f "$CROSSDIR/mtools-4.0.18.tar.bz2" || curl -v -o "$CROSSDIR/mtools-4.0.18.tar.bz2" ftp://ftp.gnu.org/gnu/mtools/mtools-4.0.18.tar.bz2
 
 	if [ ! -d "$CROSSDIR/mtools-4.0.18" ]; then
 		tar -xjf "$CROSSDIR/mtools-4.0.18.tar.bz2" -C "$CROSSDIR"
+		rm "$CROSSDIR/mtools-4.0.18.tar.bz2"
 		cd "$CROSSDIR/mtools-4.0.18"
-		patch -p1 < ../../../support/mtools.patch
+		#patch -p1 < ../../../support/mtools.patch
 	fi
 
 	cd "$CROSSDIR/mtools-4.0.18"
@@ -266,15 +322,16 @@ if [[ ! -f "$MTOOLS"  && $WIN -eq 1 ]]; then
 
 	./configure --prefix="$CROSSDIR"
 
-	make
+	make -j$THREADS
 	make install
 fi
 
 # done
 cd "$DIR"
 
+
 # fetch waf
 if [ ! -f "waf" ]; then
-	curl -v -o "$DIR/waf" "https://waf.googlecode.com/files/waf-1.7.15"
+	curl -v -o "$DIR/waf" "https://waf.io/waf-1.8.14"
 	chmod a+rx "$DIR/waf"
 fi
