@@ -32,9 +32,12 @@ while getopts "ckva:b:" opt; do
 		;;
 		c) # clean build tools dir
 			rm -vrf $CROSSDIR
-			rm -vf "$DIR/waf"
+			rm -vrf $DIR/cc
+			rm -vrf $DIR/build
+			rm -vrf $DIR/waf
 			rm -vrf $DIR/.lock-*
 			rm -vrf $DIR/.waf-*
+			rm -vrf $DIR/.waf3-*
 			exit 0
 		;;
 		b) # compiler backend to build
